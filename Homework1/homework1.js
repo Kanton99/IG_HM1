@@ -8,6 +8,8 @@ var numPositions  = 36;
 var positions = [];
 var colors = [];
 
+var table;
+
 init();
 
 function init()
@@ -17,7 +19,7 @@ function init()
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
 
-    colorCube();
+    //colorCube();
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -29,23 +31,25 @@ function init()
     //
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
+    table = new Table(gl);
+    table.init(program);
 
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
+    // var cBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
 
-    var colorLoc = gl.getAttribLocation( program, "aColor" );
-    gl.vertexAttribPointer( colorLoc, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( colorLoc );
+    // var colorLoc = gl.getAttribLocation( program, "aColor" );
+    // gl.vertexAttribPointer( colorLoc, 4, gl.FLOAT, false, 0, 0 );
+    // gl.enableVertexAttribArray( colorLoc );
 
-    var vBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(positions), gl.STATIC_DRAW);
+    // var vBuffer = gl.createBuffer();
+    // gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+    // gl.bufferData(gl.ARRAY_BUFFER, flatten(positions), gl.STATIC_DRAW);
 
 
-    var positionLoc = gl.getAttribLocation(program, "aPosition");
-    gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(positionLoc);
+    // var positionLoc = gl.getAttribLocation(program, "aPosition");
+    // gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
+    // gl.enableVertexAttribArray(positionLoc);
 
     //event listeners for buttons
 
@@ -105,10 +109,10 @@ function quad(a, b, c, d)
 
 function render()
 {
-    table.transform = mult(table.transform,rotateX(1));
+    table.transform = mult(table.transform,rotateY(1));
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.drawArrays(gl.TRIANGLES, 0, numPositions);
+    table.render();
+    //gl.drawArrays(gl.TRIANGLES, 0, numPositions);
     requestAnimationFrame(render);
 }

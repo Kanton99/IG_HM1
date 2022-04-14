@@ -135,9 +135,7 @@ function vec4()
             out[2] = arguments[0][2];
             out[3] = arguments[0][3];
             return out;
-          }
-        }
-          else if(arguments[0].type == "vec3") {
+          }else if(arguments[0].type == "vec3") {
             out[0] = arguments[0][0];
             out[1] = arguments[0][1];
             out[2] = arguments[0][2];
@@ -151,6 +149,8 @@ function vec4()
             out[3] = arguments[0][3];
             return out;
           }
+        }
+          
 
 
 

@@ -25,7 +25,15 @@ class Table extends Entity{
             vec4(-0.5,-0.5,-0.4,1),//11
             vec4(-0.5,0.4,-0.4,1),
             vec4(-0.4,0.4,-0.4,1),
-            vec4(-0.4,-0.5,-0.4,1)
+            vec4(-0.4,-0.5,-0.4,1),
+            // front right leg
+            vec4(0.5,-0.5,-0.5,1),//15
+            vec4(0.4,-0.5,-0.5,1),
+            vec4(0.4,0.4,-0.5,1),
+            vec4(0.5,-0.5,-0.4,1),
+            vec4(0.5,0.4,-0.4,1),//19
+            vec4(0.4,0.4,-0.4,1),
+            vec4(0.4,-0.5,-0.4,1)
 
         ]
         //main surface
@@ -41,6 +49,12 @@ class Table extends Entity{
         this.make_quad(13,14,9,10);
         this.make_quad(13,12,11,14);
         this.make_quad(8,9,14,11);
+        //front right leg
+        this.make_quad(17,7,15,16);
+        this.make_quad(4,8,11,12);
+        //this.make_quad(13,14,9,10);
+        //this.make_quad(13,12,11,14);
+        //this.make_quad(8,9,14,11);
     }
 
 }

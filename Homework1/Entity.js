@@ -58,9 +58,11 @@ class Entity{
         var an = this.verticies[a];
         var bn = this.verticies[b];
         var cn = this.verticies[c];
-        var ab = subtract(an,bn);
-        var ac = subtract(an,cn);
+        var ab = add(an,negate(bn));
+        var ac = add(an,negate(cn));
         var normal = vec4(normalize(cross(ac,ab)));
+        this.normals.push(normal);
+        this.normals.push(normal);
         this.normals.push(normal);
 
         var color = normal;
@@ -73,7 +75,10 @@ class Entity{
             }
         }
         color[3] = 1;
-        //console.log(normal);
+        console.log(color);
+        // this.vertColors.push(basicColors[a%8]);
+        // this.vertColors.push(basicColors[a%8]);
+        // this.vertColors.push(basicColors[a%8]);
         this.vertColors.push(color);
         this.vertColors.push(color);
         this.vertColors.push(color);
