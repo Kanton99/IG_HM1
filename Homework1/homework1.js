@@ -3,7 +3,7 @@
 var canvas;
 var gl;
 
-var numPositions  = 36;
+var numPositions  = 0;
 
 var positions = [];
 var colors = [];
@@ -33,6 +33,21 @@ function init()
     gl.useProgram(program);
     table = new Table(gl);
     table.init(program);
+    numPositions += table._numPositions;
+
+    var fovy = 45;
+    var aspect = canvas.width/canvas.height;
+    var zNear = 0.1;
+    var zFar = 100;
+    var perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
+    var modelViewMatrx = mult(translate(0,0,-4),mat4());
+
+    var perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
+    gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
+
+    var modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
+    gl.uniformMatrix4fv(modelViewLoc,false,flatten(modelViewMatrx));
+    //table.transform = mult(translate(0,0,3),table.transform);
 
     // var cBuffer = gl.createBuffer();
     // gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
@@ -109,10 +124,12 @@ function quad(a, b, c, d)
 
 function render()
 {
-    table.transform = mult(table.transform,rotate(1,1,1,1));
-
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    table.rotateAround(1,vec3(0,0,1),vec3(1,0,0));
+    table.rotateAround(1.3,vec3(0,0,1),vec3(0,1,0));
+    table.rotateAround(0.7,vec3(0,0,1),vec3(0,0,1));
+    //table.transform = mult(translate(0,0,-0.001),table.transform);
     table.render();
-    //gl.drawArrays(gl.TRIANGLES, 0, numPositions);
+    gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
     requestAnimationFrame(render);
 }

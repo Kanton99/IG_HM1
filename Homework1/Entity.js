@@ -47,7 +47,7 @@ class Entity{
 
     render(){ 
         gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(this._transform));
-        gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
+        //gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
     }
     make_triangle(a,b,c){
         this.triangles.push([a,b,c]);
@@ -143,5 +143,15 @@ class Entity{
         this.make_quad(offset+3,offset+2,offset+0,offset+1); //left
         this.make_quad(offset+3,offset+7,offset+6,offset+2); //top
         this.make_quad(offset+0,offset+4,offset+5,offset+1); //bottom
+    }
+
+    rotateAround(angle, axis, point){
+        axis = normalize(axis);
+        var translation =  translate(point[0],point[1],point[2]);
+        this.transform = mult(translation,this.transform);
+        var rotation = rotate(angle,axis);
+        this.transform = mult(rotation,this.transform);
+        translation = translate(-point[0],-point[1],-point[2]);
+        this.transform = mult(translation,this.transform);
     }
 }
