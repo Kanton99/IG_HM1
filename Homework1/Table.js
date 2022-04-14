@@ -7,40 +7,37 @@ class Table extends Entity{
     constructor(gl){
         super(gl);
         //this.gen_vertices();
-        this.verticies = [
-            //Top square
-            vec4(-0.5, 0.4,  0.5, 1.0),
-            vec4(-0.5,  0.5,  0.5, 1.0),
-            vec4(0.5,  0.5,  0.5, 1.0),
-            vec4(0.5, 0.4,  0.5, 1.0),//3
-
-            vec4(-0.5, 0.4, -0.5, 1.0),
-            vec4(-0.5,  0.5, -0.5, 1.0),
-            vec4(0.5,  0.5, -0.5, 1.0),
-            vec4(0.5, 0.4, -0.5, 1.0),//7
-            //front left leg
-            vec4(-0.5,-0.5,-0.5,1),
-            vec4(-0.4,-0.5,-0.5,1),
-            vec4(-0.4,0.4,-0.5,1),
-            vec4(-0.5,-0.5,-0.4,1),//11
-            vec4(-0.5,0.4,-0.4,1),
-            vec4(-0.4,0.4,-0.4,1),
-            vec4(-0.4,-0.5,-0.4,1)
-
-        ]
+        this.verticies = []
         //main surface
-        this.make_quad(1, 0, 3, 2);
-        this.make_quad(2, 3, 7, 6);
-        this.make_quad(3, 0, 4, 7);
-        this.make_quad(6, 5, 1, 2);
-        this.make_quad(4, 5, 6, 7);
-        this.make_quad(5, 4, 0, 1);
-        //front left leg
-        this.make_quad(4,10,9,8);
-        this.make_quad(4,8,11,12);
-        this.make_quad(13,14,9,10);
-        this.make_quad(13,12,11,14);
-        this.make_quad(8,9,14,11);
+        var matr = mat4();
+        matr[0][0] = matr[1][1] = matr[2][2] = matr[3][3] =
+        this.make_cube(0,mat);
+        
+    }
+
+    make_cube(offset,modMatrix){
+        var verts = [
+            vec4(-1, -1,  1, 1.0),
+            vec4(-1,  1,  1, 1.0),
+            vec4(1,  1,  1, 1.0),
+            vec4(1, -1,  1, 1.0),
+            vec4(-1, -1, -1, 1.0),
+            vec4(-1,  1, -1, 1.0),
+            vec4(1,  1, -1, 1.0),
+            vec4(1, -1, -1, 1.0)
+        ];
+        for(var i = 0;i<verts.length;++i){
+            var vert = mult(modMatrix,verts[i]);
+            this.verticies.push(vert);
+        }
+        this.make_quad(offset+1, offset+0, offset+3, offset+2);
+        this.make_quad(offset+2, offset+3, offset+7, offset+6);
+        this.make_quad(offset+3, offset+0, offset+4, offset+7);
+        this.make_quad(offset+4, offset+5, offset+6, offset+7);
+        this.make_quad(offset+6, offset+5, offset+1, offset+2);
+        this.make_quad(offset+5, offset+4, offset+0, offset+1);
+
+
     }
 
 }

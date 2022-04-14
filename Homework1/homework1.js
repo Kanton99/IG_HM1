@@ -108,7 +108,7 @@ function quad(a, b, c, d)
 
 function render()
 {
-    table.transform = mult(table.transform,rotateX(1));
+    table.transform = mult(table.transform,rotateY(1));
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     table.render();
