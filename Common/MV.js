@@ -245,7 +245,7 @@ function mat3()
           out[0][1]=out[0][2]=out[1][0]=out[1][2]=out[2][0]=out[2][1]=0.0;
           break;
     case 1:
-         for(var i=0; i<3; i++) for(var i=0; i<3; i++) {
+         for(var i=0; i<3; i++) for(var j=0; j<3; j++) {
            out[i][j]=arguments[0][3*i+j];
          }
         break;
@@ -405,7 +405,14 @@ function mult( u, v )
     }
    if(v.type = 'mat2') result = mat2();
    if(v.type = 'mat3') result = mat3();
-   if(v.type = 'mat4') result = mat4();
+   if(v.type = 'mat4') 
+   {
+     result = v;
+     for(var i = 0;i<v.length;i++) for(var j = 0;j<v[i].length;j++){
+        result[i][j] *= u;
+     }
+     return result;
+   }
   }
   if(u.type=='mat2' && v.type == 'vec2') {
     var result = vec2();

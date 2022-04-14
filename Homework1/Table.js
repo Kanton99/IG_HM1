@@ -6,55 +6,27 @@ class Table extends Entity{
 
     constructor(gl){
         super(gl);
-        //this.gen_vertices();
-        this.verticies = [
-            //Top square
-            vec4(-0.5, 0.4,  0.5, 1.0),
-            vec4(-0.5,  0.5,  0.5, 1.0),
-            vec4(0.5,  0.5,  0.5, 1.0),
-            vec4(0.5, 0.4,  0.5, 1.0),//3
+        
+        var scale = vec3(0.5,0.1,0.5);
+        var position = vec3(0,0.5,0);
+        this.make_cube(0,scale,position);
 
-            vec4(-0.5, 0.4, -0.5, 1.0),
-            vec4(-0.5,  0.5, -0.5, 1.0),
-            vec4(0.5,  0.5, -0.5, 1.0),
-            vec4(0.5, 0.4, -0.5, 1.0),//7
-            //front left leg
-            vec4(-0.5,-0.5,-0.5,1),
-            vec4(-0.4,-0.5,-0.5,1),
-            vec4(-0.4,0.4,-0.5,1),
-            vec4(-0.5,-0.5,-0.4,1),//11
-            vec4(-0.5,0.4,-0.4,1),
-            vec4(-0.4,0.4,-0.4,1),
-            vec4(-0.4,-0.5,-0.4,1),
-            // front right leg
-            vec4(0.5,-0.5,-0.5,1),//15
-            vec4(0.4,-0.5,-0.5,1),
-            vec4(0.4,0.4,-0.5,1),
-            vec4(0.5,-0.5,-0.4,1),
-            vec4(0.5,0.4,-0.4,1),//19
-            vec4(0.4,0.4,-0.4,1),
-            vec4(0.4,-0.5,-0.4,1)
+        scale = vec3(0.1,0.5,0.1);
+        position = vec3(-0.4,0,-0.4);
+        this.make_cube(8,scale,position);
+        
+        scale = vec3(0.1,0.5,0.1);
+        position = vec3(-0.4,0,0.4);
+        this.make_cube(16,scale,position);
 
-        ]
-        //main surface
-        this.make_quad(1, 0, 3, 2);
-        this.make_quad(2, 3, 7, 6);
-        this.make_quad(3, 0, 4, 7);
-        this.make_quad(6, 5, 1, 2);
-        this.make_quad(4, 5, 6, 7);
-        this.make_quad(5, 4, 0, 1);
-        //front left leg
-        this.make_quad(4,10,9,8);
-        this.make_quad(4,8,11,12);
-        this.make_quad(13,14,9,10);
-        this.make_quad(13,12,11,14);
-        this.make_quad(8,9,14,11);
-        //front right leg
-        this.make_quad(17,7,15,16);
-        this.make_quad(4,8,11,12);
-        //this.make_quad(13,14,9,10);
-        //this.make_quad(13,12,11,14);
-        //this.make_quad(8,9,14,11);
+        scale = vec3(0.1,0.5,0.1);
+        position = vec3(0.4,0,-0.4);
+        this.make_cube(24,scale,position);
+
+        scale = vec3(0.1,0.5,0.1);
+        position = vec3(0.4,0,0.4);
+        this.make_cube(32,scale,position);
     }
 
+    
 }

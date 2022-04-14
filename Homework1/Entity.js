@@ -75,7 +75,7 @@ class Entity{
             }
         }
         color[3] = 1;
-        console.log(color);
+        //console.log(color);
         // this.vertColors.push(basicColors[a%8]);
         // this.vertColors.push(basicColors[a%8]);
         // this.vertColors.push(basicColors[a%8]);
@@ -94,7 +94,7 @@ class Entity{
 
     update(){
         for(var i = 0;i<this.verticies.length;++i){
-            mult(this._transform,this.verticies[i]);
+           this.verticies[i] = mult(this._transform,this.verticies[i]);
         }
     }
 
@@ -109,5 +109,39 @@ class Entity{
 
     get numPositions(){
         return this._numPositions;
+    }
+    make_cube(offset, scale, position){
+        scale = mult(this._transform,vec4(scale));
+        var _scale = mat4();
+        _scale[0][0] *= scale[0];
+        _scale[1][1] *= scale[1];
+        _scale[2][2] *= scale[2];
+
+        var _position = translate(position[0],position[1],position[2]);
+        for(var x = -1;x<2;x+=2) for(var y = -1;y<2;y+=2) for(var z = -1;z<2;z+=2){
+            var vertex = vec4(x,y,z,1);
+            vertex = mult(_scale,vertex);
+            vertex[3] = 1;
+            vertex = mult(_position,vertex);
+            vertex[3] = 1;
+            this.verticies.push(vertex);
+        }
+        /* 
+        -1 -1 -1 
+        -1 -1  1
+        -1  1 -1
+        -1  1  1 
+         1 -1 -1
+         1 -1  1
+         1  1 -1
+         1  1  1
+        */ 
+
+        this.make_quad(offset+2,offset+6,offset+4,offset+0); //front
+        this.make_quad(offset+6,offset+7,offset+5,offset+4); //right
+        this.make_quad(offset+7,offset+3,offset+1,offset+5); //back
+        this.make_quad(offset+3,offset+2,offset+0,offset+1); //left
+        this.make_quad(offset+3,offset+7,offset+6,offset+2); //top
+        this.make_quad(offset+0,offset+4,offset+5,offset+1); //bottom
     }
 }
