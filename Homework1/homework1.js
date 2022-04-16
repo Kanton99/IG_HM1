@@ -10,6 +10,10 @@ var colors = [];
 
 var table;
 
+var angle_input;
+
+var iAxis = [];
+var iPoint = [];
 init();
 
 function init()
@@ -67,7 +71,35 @@ function init()
     // gl.enableVertexAttribArray(positionLoc);
 
     //event listeners for buttons
+    var input_angle = document.createElement("div");
+    input_angle.insertAdjacentText("beforeend","angle of rotation: ");
+    angle_input = document.createElement("input");
+    angle_input.setAttribute("type","number");
+    angle_input.setAttribute("size","1px");
+    angle_input.defaultValue = 0;
+    input_angle.appendChild(angle_input);
+    document.body.appendChild(input_angle);
 
+    var input_axis = document.createElement("div");
+    input_axis.insertAdjacentText("beforeend","axis of rotation: ");
+    for(var i = 0;i<3;++i){
+        iAxis.push(document.createElement("input"));
+        iAxis[i].setAttribute("type","number");
+        iAxis[i].defaultValue = 0;
+        input_axis.appendChild(iAxis[i]);
+    }
+    iAxis[1].defaultValue = 1;
+    document.body.appendChild(input_axis);
+
+    var input_point = document.createElement("div");
+    input_point.insertAdjacentText("beforeend","centre of rotation: ");
+    for(var i = 0;i<3;++i){
+        iPoint.push(document.createElement("input"));
+        iPoint[i].setAttribute("type","number");
+        iPoint[i].defaultValue = 0;
+        input_point.appendChild(iPoint[i]);
+    }
+    document.body.appendChild(input_point);
     render();
 }
 
@@ -125,10 +157,10 @@ function quad(a, b, c, d)
 function render()
 {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    table.rotateAround(1,vec3(0,0,1),vec3(1,0,0));
-    table.rotateAround(1.3,vec3(0,0,1),vec3(0,1,0));
-    table.rotateAround(0.7,vec3(0,0,1),vec3(0,0,1));
-    //table.transform = mult(translate(0,0,-0.001),table.transform);
+    var angle = parseFloat(angle_input.value);
+    var axis = vec3(parseFloat(iAxis[0].value),parseFloat(iAxis[1].value),parseFloat(iAxis[2].value));
+    var point = vec3(parseFloat(iPoint[0].value),parseFloat(iPoint[1].value),parseFloat(iPoint[2].value));
+    table.rotateAround(angle,axis,point);
     table.render();
     gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
     requestAnimationFrame(render);

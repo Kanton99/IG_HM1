@@ -146,12 +146,15 @@ class Entity{
     }
 
     rotateAround(angle, axis, point){
+        if(equal(axis,vec3(0,0,0))) return this._transform;
+        axis = mult(-1,axis);
+        point = mult(-1,point);
         axis = normalize(axis);
         var translation =  translate(point[0],point[1],point[2]);
         this.transform = mult(translation,this.transform);
         var rotation = rotate(angle,axis);
         this.transform = mult(rotation,this.transform);
-        translation = translate(-point[0],-point[1],-point[2]);
-        this.transform = mult(translation,this.transform);
+        //translation = translate(-point[0],-point[1],-point[2]);
+        this.transform = mult(inverse(translation),this.transform);
     }
 }
