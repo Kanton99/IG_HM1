@@ -12,8 +12,20 @@ var table;
 
 var angle_input;
 
-var iAxis = [];
-var iPoint = [];
+var iAxis = vec3();
+var iPoint = vec3();
+
+var modelViewLoc;
+var modelViewMatrix = mat4();
+var modelViewRotAngles = vec3();
+var modelViewMove = vec4();
+
+var perspectiveLoc;
+var perspectiveMatrix;
+var fovy = 45;
+var aspect;
+var zNear;
+var zFar;
 init();
 
 function init()
@@ -22,7 +34,7 @@ function init()
 
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
-
+    aspect = canvas.width/canvas.height
     //colorCube();
 
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -39,18 +51,13 @@ function init()
     table.init(program);
     numPositions += table._numPositions;
 
-    var fovy = 45;
-    var aspect = canvas.width/canvas.height;
-    var zNear = 0.1;
-    var zFar = 100;
-    var perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
-    var modelViewMatrx = mult(translate(0,0,-4),mat4());
+    perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
+    modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
 
-    var perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
-    gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
+    perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
+    //gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
 
-    var modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
-    gl.uniformMatrix4fv(modelViewLoc,false,flatten(modelViewMatrx));
+    modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
     //table.transform = mult(translate(0,0,3),table.transform);
 
     // var cBuffer = gl.createBuffer();
@@ -83,23 +90,66 @@ function init()
     var input_axis = document.createElement("div");
     input_axis.insertAdjacentText("beforeend","axis of rotation: ");
     for(var i = 0;i<3;++i){
-        iAxis.push(document.createElement("input"));
+        iAxis[i] = (document.createElement("input"));
         iAxis[i].setAttribute("type","number");
         iAxis[i].defaultValue = 0;
         input_axis.appendChild(iAxis[i]);
     }
-    iAxis[1].defaultValue = 1;
     document.body.appendChild(input_axis);
 
     var input_point = document.createElement("div");
     input_point.insertAdjacentText("beforeend","centre of rotation: ");
     for(var i = 0;i<3;++i){
-        iPoint.push(document.createElement("input"));
+        iPoint[i] = (document.createElement("input"));
         iPoint[i].setAttribute("type","number");
         iPoint[i].defaultValue = 0;
         input_point.appendChild(iPoint[i]);
     }
     document.body.appendChild(input_point);
+
+    var viewControls = document.createElement("div");
+    var cameraMove = document.createElement("div");
+    cameraMove.insertAdjacentText("beforeend","move camera");
+    viewControls.appendChild(cameraMove);
+    for(var i = 0;i<3;i++){
+        modelViewMove[i] = document.createElement("input");
+        modelViewMove[i].setAttribute("type","range");
+        modelViewMove[i].setAttribute("min","-0.1");
+        modelViewMove[i].setAttribute("max","0.1");
+        modelViewMove[i].setAttribute("step","0.01");
+        modelViewMove[i].defaultValue=0;
+        cameraMove.appendChild(modelViewMove[i]);
+    }
+
+    var cameraRot = document.createElement("div");
+    cameraRot.insertAdjacentText("beforeend","rotate camera");
+    viewControls.appendChild(cameraRot);
+    for(var i = 0;i<3;i++){
+        modelViewRotAngles[i] = document.createElement("input");
+        modelViewRotAngles[i].setAttribute("type","range");
+        modelViewRotAngles[i].setAttribute("min","-1");
+        modelViewRotAngles[i].setAttribute("max","1");
+        modelViewRotAngles[i].setAttribute("step","0.1");
+        modelViewRotAngles[i].defaultValue=0;
+        cameraRot.appendChild(modelViewRotAngles[i]);
+    }
+
+    document.body.appendChild(viewControls);
+
+    var boundingControls = document.createElement("div");
+    boundingControls.insertAdjacentText("beforeend","bounding box controls: ");
+    zNear = document.createElement("input");
+    zNear.setAttribute("type","number");
+    zNear.defaultValue = 0.1;
+    zNear.step = 0.1;
+    boundingControls.appendChild(zNear);
+
+    zFar = document.createElement("input");
+    zFar.setAttribute("type","number");
+    zFar.defaultValue = 10;
+    zFar.step = 0.1;
+    boundingControls.appendChild(zFar);
+    document.body.appendChild(boundingControls);
     render();
 }
 
@@ -157,6 +207,16 @@ function quad(a, b, c, d)
 function render()
 {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    modelViewMatrix = mult(translate(parseFloat(modelViewMove[0].value),parseFloat(modelViewMove[1].value),parseFloat(modelViewMove[2].value)),modelViewMatrix);
+    modelViewMatrix = mult(rotateX(modelViewRotAngles[0].value),modelViewMatrix);
+    modelViewMatrix = mult(rotateY(modelViewRotAngles[1].value),modelViewMatrix);
+    modelViewMatrix = mult(rotateZ(modelViewRotAngles[2].value),modelViewMatrix);
+    gl.uniformMatrix4fv(modelViewLoc,false,flatten(modelViewMatrix));
+
+    perspectiveMatrix = perspective(fovy,aspect,parseFloat(zNear.value),parseFloat(zFar.value));
+    gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
+
     var angle = parseFloat(angle_input.value);
     var axis = vec3(parseFloat(iAxis[0].value),parseFloat(iAxis[1].value),parseFloat(iAxis[2].value));
     var point = vec3(parseFloat(iPoint[0].value),parseFloat(iPoint[1].value),parseFloat(iPoint[2].value));
