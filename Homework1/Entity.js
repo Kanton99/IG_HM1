@@ -20,10 +20,11 @@ class Entity{
         this._numPositions=0;
         this.buffers;
         this.rotationMatrixLoc;
+        
     }
 
     init(program){
-        //this.gen_normals();
+        this.calculateNormals(true);
         //gl.useProgram(program);
         var cBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
@@ -41,13 +42,21 @@ class Entity{
         gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(positionLoc);
 
+        var nBuffer = gl.createBuffer();
+        this.gl.bindBuffer(gl.ARRAY_BUFFER,nBuffer);
+        this.gl.bufferData(gl.ARRAY_BUFFER,flatten(this.normals),gl.STATIC_DRAW);
+
+        var normalLoc = gl.getAttribLocation(program,"aNormal");
+        this.gl.vertexAttribPointer(normalLoc,4,gl.FLOAT,false,0,0);
+        this.gl.enableVertexAttribArray(normalLoc);
+
         this.rotationMatrixLoc = gl.getUniformLocation(program, "objectMatrix");
-        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(this._transform));
+        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(transpose(this._transform)));
     }
 
     render(){ 
-        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(this._transform));
-        //gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
+        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(transpose(this._transform)));
+        //gl.drawArrays(gl.TRIANGLES, 0, this.numPositions);
     }
     make_triangle(a,b,c){
         this.triangles.push([a,b,c]);
@@ -60,12 +69,7 @@ class Entity{
         var cn = this.verticies[c];
         var ab = add(an,negate(bn));
         var ac = add(an,negate(cn));
-        var normal = vec4(normalize(cross(ac,ab)));
-        this.normals.push(normal);
-        this.normals.push(normal);
-        this.normals.push(normal);
-
-        var color = normal;
+        var color = vec4(normalize(cross(ac,ab)));
         for(var i = 0;i<4;i++){
             if(color[i] < 0){
                 color[0] = 1+color[0];
@@ -95,6 +99,9 @@ class Entity{
     update(){
         for(var i = 0;i<this.verticies.length;++i){
            this.verticies[i] = mult(this._transform,this.verticies[i]);
+        }
+        for(var i = 0;i<this.normals.length;++i){
+            this.normals[i] = mult(this._transform,this.normals[i]);
         }
     }
 
@@ -147,14 +154,32 @@ class Entity{
 
     rotateAround(angle, axis, point){
         if(equal(axis,vec3(0,0,0))) return this._transform;
-        axis = mult(-1,axis);
-        point = mult(-1,point);
         axis = normalize(axis);
         var translation =  translate(point[0],point[1],point[2]);
         this.transform = mult(translation,this.transform);
         var rotation = rotate(angle,axis);
         this.transform = mult(rotation,this.transform);
-        //translation = translate(-point[0],-point[1],-point[2]);
         this.transform = mult(inverse(translation),this.transform);
+    }
+
+    calculateNormals(flat = false){
+        var normals = [];
+        var l = this.triangles.length;
+        for(var i = 0;i<l;++i){
+            var a = this.verticies[this.triangles[i][0]];
+            var b = this.verticies[this.triangles[i][1]];
+            var c = this.verticies[this.triangles[i][2]];
+
+            var ab = subtract(b,a);
+            var ac = subtract(c,a);
+            var normal = vec4(normalize(cross(ab,ac)));
+            if(flat){
+                normals.push(normal);
+                normals.push(normal);
+                normals.push(normal);
+            }
+        }
+
+        this.normals = normals;
     }
 }

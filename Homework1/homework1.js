@@ -8,9 +8,11 @@ var numPositions  = 0;
 var positions = [];
 var colors = [];
 
+var program;
+
 var table;
 
-var angle_input;
+var angle;
 
 var iAxis = vec3();
 var iPoint = vec3();
@@ -19,6 +21,7 @@ var modelViewLoc;
 var modelViewMatrix = mat4();
 var modelViewRotAngles = vec3();
 var modelViewMove = vec4();
+modelViewMove[3] = 1;
 
 var perspectiveLoc;
 var perspectiveMatrix;
@@ -45,7 +48,7 @@ function init()
     //
     //  Load shaders and initialize attribute buffers
     //
-    var program = initShaders(gl, "vertex-shader", "fragment-shader");
+    program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
     table = new Table(gl);
     table.init(program);
@@ -57,6 +60,8 @@ function init()
     perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
     //gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
 
+    perspectiveMatrix = perspective(fovy,aspect,0.1,10);
+    gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
     modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
     //table.transform = mult(translate(0,0,3),table.transform);
 
@@ -78,78 +83,47 @@ function init()
     // gl.enableVertexAttribArray(positionLoc);
 
     //event listeners for buttons
-    var input_angle = document.createElement("div");
-    input_angle.insertAdjacentText("beforeend","angle of rotation: ");
-    angle_input = document.createElement("input");
-    angle_input.setAttribute("type","number");
-    angle_input.setAttribute("size","1px");
-    angle_input.defaultValue = 0;
-    input_angle.appendChild(angle_input);
-    document.body.appendChild(input_angle);
+    document.querySelector('#rotation').addEventListener('input', (e)=>{
+        angle = parseFloat(e.target.value);
+    });
+    document.querySelector("#axisX").addEventListener('input',(e)=>{
+        iAxis[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#axisY").addEventListener('input',(e)=>{
+        iAxis[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#axisZ").addEventListener('input',(e)=>{
+        iAxis[2]=parseFloat(e.target.value);
+    });
 
-    var input_axis = document.createElement("div");
-    input_axis.insertAdjacentText("beforeend","axis of rotation: ");
-    for(var i = 0;i<3;++i){
-        iAxis[i] = (document.createElement("input"));
-        iAxis[i].setAttribute("type","number");
-        iAxis[i].defaultValue = 0;
-        input_axis.appendChild(iAxis[i]);
-    }
-    document.body.appendChild(input_axis);
+    document.querySelector("#centreX").addEventListener('input',(e)=>{
+        iPoint[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#centreY").addEventListener('input',(e)=>{
+        iPoint[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#centreZ").addEventListener('input',(e)=>{
+        iPoint[2]=parseFloat(e.target.value);
+    });
 
-    var input_point = document.createElement("div");
-    input_point.insertAdjacentText("beforeend","centre of rotation: ");
-    for(var i = 0;i<3;++i){
-        iPoint[i] = (document.createElement("input"));
-        iPoint[i].setAttribute("type","number");
-        iPoint[i].defaultValue = 0;
-        input_point.appendChild(iPoint[i]);
-    }
-    document.body.appendChild(input_point);
-
-    var viewControls = document.createElement("div");
-    var cameraMove = document.createElement("div");
-    cameraMove.insertAdjacentText("beforeend","move camera");
-    viewControls.appendChild(cameraMove);
-    for(var i = 0;i<3;i++){
-        modelViewMove[i] = document.createElement("input");
-        modelViewMove[i].setAttribute("type","range");
-        modelViewMove[i].setAttribute("min","-0.1");
-        modelViewMove[i].setAttribute("max","0.1");
-        modelViewMove[i].setAttribute("step","0.01");
-        modelViewMove[i].defaultValue=0;
-        cameraMove.appendChild(modelViewMove[i]);
-    }
-
-    var cameraRot = document.createElement("div");
-    cameraRot.insertAdjacentText("beforeend","rotate camera");
-    viewControls.appendChild(cameraRot);
-    for(var i = 0;i<3;i++){
-        modelViewRotAngles[i] = document.createElement("input");
-        modelViewRotAngles[i].setAttribute("type","range");
-        modelViewRotAngles[i].setAttribute("min","-1");
-        modelViewRotAngles[i].setAttribute("max","1");
-        modelViewRotAngles[i].setAttribute("step","0.1");
-        modelViewRotAngles[i].defaultValue=0;
-        cameraRot.appendChild(modelViewRotAngles[i]);
-    }
-
-    document.body.appendChild(viewControls);
-
-    var boundingControls = document.createElement("div");
-    boundingControls.insertAdjacentText("beforeend","bounding box controls: ");
-    zNear = document.createElement("input");
-    zNear.setAttribute("type","number");
-    zNear.defaultValue = 0.1;
-    zNear.step = 0.1;
-    boundingControls.appendChild(zNear);
-
-    zFar = document.createElement("input");
-    zFar.setAttribute("type","number");
-    zFar.defaultValue = 10;
-    zFar.step = 0.1;
-    boundingControls.appendChild(zFar);
-    document.body.appendChild(boundingControls);
+    document.querySelector("#cameraTX").addEventListener('input',(e)=>{
+        modelViewMove[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#cameraTY").addEventListener('input',(e)=>{
+        modelViewMove[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#cameraTZ").addEventListener('input',(e)=>{
+        modelViewMove[2]=parseFloat(e.target.value);
+    });
+    document.querySelector("#cameraRX").addEventListener('input',(e)=>{
+        modelViewRotAngles[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#cameraRY").addEventListener('input',(e)=>{
+        modelViewRotAngles[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#cameraRZ").addEventListener('input',(e)=>{
+        modelViewRotAngles[2]=parseFloat(e.target.value);
+    });
     render();
 }
 
@@ -207,20 +181,19 @@ function quad(a, b, c, d)
 function render()
 {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    
+    modelViewMatrix = mult(translate(modelViewMove[0],modelViewMove[1],(modelViewMove[2])),modelViewMatrix);
+    modelViewMatrix = mult(rotateX(modelViewRotAngles[0]),modelViewMatrix);
+    modelViewMatrix = mult(rotateY(modelViewRotAngles[1]),modelViewMatrix);
+    modelViewMatrix = mult(rotateZ(modelViewRotAngles[2]),modelViewMatrix);
+    gl.uniformMatrix4fv(modelViewLoc,false,flatten((modelViewMatrix)));
 
-    modelViewMatrix = mult(translate(parseFloat(modelViewMove[0].value),parseFloat(modelViewMove[1].value),parseFloat(modelViewMove[2].value)),modelViewMatrix);
-    modelViewMatrix = mult(rotateX(modelViewRotAngles[0].value),modelViewMatrix);
-    modelViewMatrix = mult(rotateY(modelViewRotAngles[1].value),modelViewMatrix);
-    modelViewMatrix = mult(rotateZ(modelViewRotAngles[2].value),modelViewMatrix);
-    gl.uniformMatrix4fv(modelViewLoc,false,flatten(modelViewMatrix));
 
-    perspectiveMatrix = perspective(fovy,aspect,parseFloat(zNear.value),parseFloat(zFar.value));
-    gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
-
-    var angle = parseFloat(angle_input.value);
-    var axis = vec3(parseFloat(iAxis[0].value),parseFloat(iAxis[1].value),parseFloat(iAxis[2].value));
-    var point = vec3(parseFloat(iPoint[0].value),parseFloat(iPoint[1].value),parseFloat(iPoint[2].value));
-    table.rotateAround(angle,axis,point);
+    var normalMatrix = table.transform;
+    normalMatrix = transpose(normalMatrix);
+    var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
+    gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
+    table.rotateAround(angle,iAxis,iPoint);
     table.render();
     gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
     requestAnimationFrame(render);

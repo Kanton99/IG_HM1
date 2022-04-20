@@ -1,38 +1,79 @@
 <!DOCTYPE html>
 <html>
-
 <body>
 <canvas id="gl-canvas" width="512"" height="512"> </canvas>
+
+<div>angle of rotation: <input id="rotation" type="number" size="1px" value="0"></div>
+<div>axis of rotation: 
+    <input id="axisX" type="number" value="0">
+    <input id="axisY" type="number" value="0">
+    <input id="axisZ" type="number" value="0">
+</div>
+<div>centre of rotation: 
+    <input id="centreX" type="number" value="0">
+    <input id="centreY" type="number" value="0">
+    <input id="centreZ" type="number" value="0">
+</div>
+<div>
+    <div>
+        move camera
+        <input id="cameraTX" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+        <input id="cameraTY" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+        <input id="cameraTZ" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+    </div>
+    <div>
+        rotate camera
+        <input id="cameraRY" type="range" min="-1" max="1" step="0.1" value="0">
+        <input id="cameraRX" type="range" min="-1" max="1" step="0.1" value="0">
+        <input id="cameraRZ" type="range" min="-1" max="1" step="0.1" value="0">
+    </div>
+</div>
+<div>bounding box controls: 
+    <input id="zNear" type="number" value="0.1" step="0.1">
+    <input id="zFar" type="number" value="10" step="0.1">
+</div>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 #version 300 es
 
 in  vec4 aPosition;
 in  vec4 aColor;
+in  vec4 aNormal; 
 out vec4 vColor;
+out vec3 vLighting;
 
 uniform mat4 objectMatrix; 
 uniform mat4 perspectiveMatrix;
 uniform mat4 modelViewMatrix;
+uniform mat4 normalMatrix;
 void main()
 {
     vColor = aColor;
-    gl_Position = perspectiveMatrix * modelViewMatrix *objectMatrix * aPosition ;
+    gl_Position = perspectiveMatrix * modelViewMatrix * objectMatrix * aPosition ;
+
+    highp vec3 ambientLight = vec3(0.3,0.3,0.3);
+    highp vec3 directionalLightColor = vec3(1, 1, 1);
+    highp vec3 directionalVector = (vec3(1,1,1));
+
+    highp vec4 transformedNormal =  normalize(normalMatrix * aNormal);
+
+    highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+    vLighting = ambientLight+(directionalLightColor * (directional));
 }
 </script>
-
 <script id="fragment-shader" type="x-shader/x-fragment">
 #version 300 es
 
 precision mediump float;
 
 in vec4 vColor;
+in vec3 vLighting;
 out vec4 fColor;
 
 void
 main()
 {
-    fColor = vColor;
+    fColor = vec4(vColor.rgb*vLighting,1);
 }
 </script>
 
@@ -40,6 +81,7 @@ main()
 <script src="../Common/MV.js"></script>
 <script src="Entity.js"></script>
 <script src="Table.js"></script>
+<script src="Spotlight.js"></script>
 <script src="homework1.js"></script>
 
 </body>
