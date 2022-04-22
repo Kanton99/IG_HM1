@@ -24,7 +24,7 @@ class Entity{
     }
 
     init(program){
-        this.calculateNormals(true);
+        this.calculateNormals();
         //gl.useProgram(program);
         var cBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
@@ -96,23 +96,12 @@ class Entity{
         this.make_triangle(a,c,d);
     }
 
-    update(){
-        for(var i = 0;i<this.verticies.length;++i){
-           this.verticies[i] = mult(this._transform,this.verticies[i]);
-        }
-        for(var i = 0;i<this.normals.length;++i){
-            this.normals[i] = normalize(mult(this._transform,this.normals[i]));
-            this.normals[i][3]=1;
-        }
-    }
-
     get transform(){
         return this._transform;
     }
 
     set transform(m){
         this._transform = m;
-        this.update();
     }
 
     get numPositions(){
@@ -135,14 +124,14 @@ class Entity{
             this.verticies.push(vertex);
         }
         /* 
-        -1 -1 -1 
-        -1 -1  1
-        -1  1 -1
-        -1  1  1 
-         1 -1 -1
-         1 -1  1
-         1  1 -1
-         1  1  1
+        -1 -1 -1 -0
+        -1 -1  1 -1
+        -1  1 -1 -2
+        -1  1  1 -3
+         1 -1 -1 -4
+         1 -1  1 -5
+         1  1 -1 -6
+         1  1  1 -7
         */ 
 
         this.make_quad(offset+2,offset+6,offset+4,offset+0); //front
@@ -163,7 +152,7 @@ class Entity{
         this.transform = mult(inverse(translation),this.transform);
     }
 
-    calculateNormals(flat = false){
+    calculateNormals(){
         var normals = [];
         var l = this.triangles.length;
         for(var i = 0;i<l;++i){
@@ -175,12 +164,10 @@ class Entity{
             c = (vec3(c[0],c[1],c[2]));
             var ab = (subtract(b,a));
             var ac = (subtract(c,a));
-            var normal = vec4(normalize(cross(ac,ab)));
-            if(flat){
-                normals.push(normal);
-                normals.push(normal);
-                normals.push(normal);
-            }
+            var normal = vec4(negate(normalize(cross(ac,ab))));
+            normals.push((normal));
+            normals.push((normal));
+            normals.push((normal));
         }
 
         this.normals = normals;

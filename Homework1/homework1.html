@@ -59,8 +59,11 @@ float map(float value,float oMin,float oMax,float nMin,float nMax){
 }
 
 vec3 map(vec3 value,vec3 oMin,vec3 oMax,vec3 nMin,vec3 nMax){
-    vec3 perc = (value-oMin)/(oMax-oMin);
-    return perc * (nMax-nMin) + nMin;
+    vec3 result;
+    for(int i = 0;i<3;i++){
+        result[i] = map(value[i],oMin[i],oMax[i],nMin[i],nMax[i]);
+    }
+    return result;
 }
 
 void main()
@@ -68,7 +71,7 @@ void main()
     vec4 worldPos = objectMatrix * aPosition;
     gl_Position =  perspectiveMatrix * modelViewMatrix * worldPos;
 
-    highp vec4 transformedNormal =  normalize(normalMatrix * aNormal);
+    highp vec4 transformedNormal =  normalize(aNormal*normalMatrix);
     vec3 posToLight = normalize((worldPos-lightPos).xyz);
     //vLighting = posToLight;
     highp float directional = 0.f;
@@ -76,7 +79,7 @@ void main()
         directional = max(dot(transformedNormal.xyz, -normalize(lightDirection.xyz)), 0.0);
     }
     vColor = aColor;
-    vLighting = (lightColor.rgb*directional);
+    vLighting = (lightColor.rgb * directional);
 }
 </script>
 <script id="fragment-shader" type="x-shader/x-fragment">

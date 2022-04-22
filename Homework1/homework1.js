@@ -30,6 +30,7 @@ var aspect;
 var zNear = 0.1;
 var zFar = 10;
 
+
 var spotlight;
 init();
 
@@ -57,19 +58,17 @@ function init()
     numPositions += table._numPositions;
     
     spotlight = new Spotlight();
-    spotlight.position = vec4(0,1,-1,1);
+    spotlight.position = vec4(0,2,-2,1);
     spotlight.color = vec4(1,1,1,1);
-    spotlight.direction = vec4(0,-1,1,1);
-    spotlight.angle = 45;
+    spotlight.direction = vec4(0,-1,-1,1);
+    spotlight.opening = 180;
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
 
     perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
-    //gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
 
     modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
-    //table.transform = mult(translate(0,0,3),table.transform);
 
     // var cBuffer = gl.createBuffer();
     // gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
@@ -207,7 +206,7 @@ function render()
     gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
 
     var normalMatrix = table.transform;
-    normalMatrix = transpose(normalMatrix);
+    //normalMatrix = transpose(normalMatrix);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
     table.rotateAround(angle,iAxis,iPoint);
