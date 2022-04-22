@@ -55,7 +55,7 @@ class Entity{
     }
 
     render(){ 
-        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(transpose(this._transform)));
+        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten((this._transform)));
         //gl.drawArrays(gl.TRIANGLES, 0, this.numPositions);
     }
     make_triangle(a,b,c){
@@ -101,7 +101,8 @@ class Entity{
            this.verticies[i] = mult(this._transform,this.verticies[i]);
         }
         for(var i = 0;i<this.normals.length;++i){
-            this.normals[i] = mult(this._transform,this.normals[i]);
+            this.normals[i] = normalize(mult(this._transform,this.normals[i]));
+            this.normals[i][3]=1;
         }
     }
 
@@ -153,7 +154,7 @@ class Entity{
     }
 
     rotateAround(angle, axis, point){
-        if(equal(axis,vec3(0,0,0))) return this._transform;
+        if(equal(axis,vec3(0,0,0)) || angle == 0) return this.transform;
         axis = normalize(axis);
         var translation =  translate(point[0],point[1],point[2]);
         this.transform = mult(translation,this.transform);
@@ -169,10 +170,12 @@ class Entity{
             var a = this.verticies[this.triangles[i][0]];
             var b = this.verticies[this.triangles[i][1]];
             var c = this.verticies[this.triangles[i][2]];
-
-            var ab = subtract(b,a);
-            var ac = subtract(c,a);
-            var normal = vec4(normalize(cross(ab,ac)));
+            a = (vec3(a[0],a[1],a[2]));
+            b = (vec3(b[0],b[1],b[2]));
+            c = (vec3(c[0],c[1],c[2]));
+            var ab = (subtract(b,a));
+            var ac = (subtract(c,a));
+            var normal = vec4(normalize(cross(ac,ab)));
             if(flat){
                 normals.push(normal);
                 normals.push(normal);

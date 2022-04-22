@@ -27,8 +27,10 @@ var perspectiveLoc;
 var perspectiveMatrix;
 var fovy = 45;
 var aspect;
-var zNear;
-var zFar;
+var zNear = 0.1;
+var zFar = 10;
+
+var spotlight;
 init();
 
 function init()
@@ -53,6 +55,12 @@ function init()
     table = new Table(gl);
     table.init(program);
     numPositions += table._numPositions;
+    
+    spotlight = new Spotlight();
+    spotlight.position = vec4(0,1,-1,1);
+    spotlight.color = vec4(1,1,1,1);
+    spotlight.direction = vec4(0,-1,1,1);
+    spotlight.angle = 45;
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
@@ -60,8 +68,6 @@ function init()
     perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
     //gl.uniformMatrix4fv(perspectiveLoc, false, flatten(perspectiveMatrix));
 
-    perspectiveMatrix = perspective(fovy,aspect,0.1,10);
-    gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
     modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
     //table.transform = mult(translate(0,0,3),table.transform);
 
@@ -124,6 +130,14 @@ function init()
     document.querySelector("#cameraRZ").addEventListener('input',(e)=>{
         modelViewRotAngles[2]=parseFloat(e.target.value);
     });
+
+    document.querySelector("#zNear").addEventListener('input',(e)=>{
+        zNear = parseFloat(e.target.value);
+    });
+    document.querySelector("#zFar").addEventListener('input',(e)=>{
+        zFar = parseFloat(e.target.value);
+    });
+
     render();
 }
 
@@ -181,13 +195,16 @@ function quad(a, b, c, d)
 function render()
 {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
+    spotlight.render(gl,program);
+
     modelViewMatrix = mult(translate(modelViewMove[0],modelViewMove[1],(modelViewMove[2])),modelViewMatrix);
     modelViewMatrix = mult(rotateX(modelViewRotAngles[0]),modelViewMatrix);
     modelViewMatrix = mult(rotateY(modelViewRotAngles[1]),modelViewMatrix);
     modelViewMatrix = mult(rotateZ(modelViewRotAngles[2]),modelViewMatrix);
     gl.uniformMatrix4fv(modelViewLoc,false,flatten((modelViewMatrix)));
 
+    perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
+    gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
 
     var normalMatrix = table.transform;
     normalMatrix = transpose(normalMatrix);

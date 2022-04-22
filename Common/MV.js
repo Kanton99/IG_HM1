@@ -142,14 +142,14 @@ function vec4()
             out[3] = 1.0;
             return out;
           }
-          else {
+        } else {
             out[0] = arguments[0][0];
             out[1] = arguments[0][1];
             out[2] = arguments[0][2];
             out[3] = arguments[0][3];
             return out;
           }
-        }
+        
           
 
 

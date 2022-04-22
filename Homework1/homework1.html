@@ -39,6 +39,12 @@
 in  vec4 aPosition;
 in  vec4 aColor;
 in  vec4 aNormal; 
+
+uniform vec4 lightPos;
+uniform float angle;
+uniform vec4 lightDirection;
+uniform vec4 lightColor;
+
 out vec4 vColor;
 out vec3 vLighting;
 
@@ -46,19 +52,31 @@ uniform mat4 objectMatrix;
 uniform mat4 perspectiveMatrix;
 uniform mat4 modelViewMatrix;
 uniform mat4 normalMatrix;
+
+float map(float value,float oMin,float oMax,float nMin,float nMax){
+    float perc = (value-oMin)/(oMax-oMin);
+    return perc * (nMax-nMin) + nMin;
+}
+
+vec3 map(vec3 value,vec3 oMin,vec3 oMax,vec3 nMin,vec3 nMax){
+    vec3 perc = (value-oMin)/(oMax-oMin);
+    return perc * (nMax-nMin) + nMin;
+}
+
 void main()
 {
-    vColor = aColor;
-    gl_Position = perspectiveMatrix * modelViewMatrix * objectMatrix * aPosition ;
-
-    highp vec3 ambientLight = vec3(0.3,0.3,0.3);
-    highp vec3 directionalLightColor = vec3(1, 1, 1);
-    highp vec3 directionalVector = (vec3(1,1,1));
+    vec4 worldPos = objectMatrix * aPosition;
+    gl_Position =  perspectiveMatrix * modelViewMatrix * worldPos;
 
     highp vec4 transformedNormal =  normalize(normalMatrix * aNormal);
-
-    highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-    vLighting = ambientLight+(directionalLightColor * (directional));
+    vec3 posToLight = normalize((worldPos-lightPos).xyz);
+    //vLighting = posToLight;
+    highp float directional = 0.f;
+    if(dot(posToLight,normalize(lightDirection.xyz))>=cos(angle)){
+        directional = max(dot(transformedNormal.xyz, -normalize(lightDirection.xyz)), 0.0);
+    }
+    vColor = aColor;
+    vLighting = (lightColor.rgb*directional);
 }
 </script>
 <script id="fragment-shader" type="x-shader/x-fragment">
@@ -74,6 +92,7 @@ void
 main()
 {
     fColor = vec4(vColor.rgb*vLighting,1);
+    //fColor = vColor;
 }
 </script>
 
