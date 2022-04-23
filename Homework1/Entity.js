@@ -70,13 +70,8 @@ class Entity{
         var ab = add(an,negate(bn));
         var ac = add(an,negate(cn));
         var color = vec4(normalize(cross(ac,ab)));
-        for(var i = 0;i<4;i++){
-            if(color[i] < 0){
-                color[0] = 1+color[0];
-                color[1] = 1+color[1];
-                color[2] = 1+color[2];
-                break;
-            }
+        for(var i = 0;i<3;i++){
+            color[i] = (color[i]+1)/2;
         }
         color[3] = 1;
         //console.log(color);
@@ -96,17 +91,10 @@ class Entity{
         this.make_triangle(a,c,d);
     }
 
-    get transform(){
-        return this._transform;
-    }
+    get transform(){return this._transform;}
+    set transform(m){this._transform = m;}
 
-    set transform(m){
-        this._transform = m;
-    }
-
-    get numPositions(){
-        return this._numPositions;
-    }
+    get numPositions(){return this._numPositions;}
     make_cube(offset, scale, position){
         scale = mult(this._transform,vec4(scale));
         var _scale = mat4();

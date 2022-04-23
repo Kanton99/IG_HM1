@@ -206,7 +206,7 @@ function render()
     gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
 
     var normalMatrix = table.transform;
-    //normalMatrix = transpose(normalMatrix);
+    normalMatrix = transpose(normalMatrix);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
     table.rotateAround(angle,iAxis,iPoint);
