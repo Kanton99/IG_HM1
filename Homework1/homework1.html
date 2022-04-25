@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <body>
-<canvas id="gl-canvas" width="512"" height="512"> </canvas>
+<canvas id="gl-canvas" width="512" height="512"> </canvas>
 
-<div>angle of rotation: <input id="rotation" type="number" size="1px" value="0"></div>
+<div>angle of rotation: <input id="rotation" type="number" value="0"></div>
 <div>axis of rotation: 
     <input id="axisX" type="number" value="0">
     <input id="axisY" type="number" value="0">
@@ -32,6 +32,24 @@
     <input id="zNear" type="number" value="0.1" step="0.1">
     <input id="zFar" type="number" value="10" step="0.1">
 </div>
+<div>
+    <div>Spotlight position
+        <input id="spotlightPX" type="number" value="1">   
+        <input id="spotlightPY" type="number" value="1">   
+        <input id="spotlightPZ" type="number" value="1">   
+    </div>
+    <div>SpotlightDirection
+        <input id="spotlightDX" type="number" value="-1">   
+        <input id="spotlightDY" type="number" value="-1">   
+        <input id="spotlightDZ" type="number" value="-1">   
+    </div>
+    <div>Spotlight angle
+        <input id="spotlightAngle" type="number" value="10">
+    </div>
+    <div>Spotlight attenuation factor 
+        <input id="SpotlightAtt" type="number" value="1">
+    </div>
+</div>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 #version 300 es
@@ -44,6 +62,7 @@ uniform vec4 lightPos;
 uniform float angle;
 uniform vec4 lightDirection;
 uniform vec4 lightColor;
+uniform float attenuationFactor;
 
 out vec4 vColor;
 out vec3 vLighting;
@@ -61,11 +80,14 @@ void main()
     highp vec4 transformedNormal =  normalize(aNormal*normalMatrix);
     vec3 posToLight = normalize((worldPos-lightPos).xyz);
     highp float directional = 0.f;
+    highp float intensity = 0.f;
     if(dot(posToLight,normalize(lightDirection.xyz))>=cos(angle)){
-        directional = min(dot(transformedNormal.xyz, -normalize(lightDirection.xyz)), 1.0);
+        float normToLightAngle = dot(transformedNormal.xyz, -normalize(lightDirection.xyz));
+        directional = max(normToLightAngle, 0.0);
+        intensity = pow(cos(normToLightAngle),attenuationFactor);
     }
-    vColor = aColor * dot(transformedNormal.xyz, -normalize(lightDirection.xyz));
-    vLighting = (lightColor.rgb);
+    vColor = aColor;
+    vLighting = (lightColor.rgb * directional * intensity);
 }
 </script>
 <script id="fragment-shader" type="x-shader/x-fragment">

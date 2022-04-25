@@ -6,6 +6,7 @@ class Spotlight{
         this._direction = vec4(),
         this._direction[2] = this._direction[3] = 1;
         this._color = vec4();
+        this._attenuation = 0;
     }
 
     render(gl, program){
@@ -17,6 +18,7 @@ class Spotlight{
         gl.uniform1f(lightOpeningLoc,this._opening);
         var lightColorLoc = gl.getUniformLocation(program, "lightColor");
         gl.uniform4fv(lightColorLoc,flatten(this._color));
+        gl.uniform1f(gl.getUniformLocation(program,"attenuationFactor"),this._attenuation);
     }
     
     get position(){return this._position;}

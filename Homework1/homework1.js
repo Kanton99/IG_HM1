@@ -58,10 +58,10 @@ function init()
     numPositions += table._numPositions;
     
     spotlight = new Spotlight();
-    spotlight.position = vec4(0,2,-2,1);
+    spotlight.position = vec4(1,1,1,1);
     spotlight.color = vec4(1,1,1,1);
-    spotlight.direction = vec4(0,-1,-1,1);
-    spotlight.opening = 180;
+    spotlight.direction = vec4(-1,-1,-1,1);
+    spotlight.opening = 10;
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
@@ -136,7 +136,30 @@ function init()
     document.querySelector("#zFar").addEventListener('input',(e)=>{
         zFar = parseFloat(e.target.value);
     });
-
+    document.querySelector("#spotlightPX").addEventListener('input',(e)=>{
+        spotlight._position[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightPY").addEventListener('input',(e)=>{
+        spotlight._position[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightPZ").addEventListener('input',(e)=>{
+        spotlight._position[2]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightDX").addEventListener('input',(e)=>{
+        spotlight._direction[0]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightDY").addEventListener('input',(e)=>{
+        spotlight._direction[1]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightDZ").addEventListener('input',(e)=>{
+        spotlight._direction[2]=parseFloat(e.target.value);
+    });
+    document.querySelector("#spotlightAngle").addEventListener('input',(e)=>{
+        spotlight.opening=parseFloat(e.target.value);
+    });
+    document.querySelector("#SpotlightAtt").addEventListener('input',(e)=>{
+        spotlight._attenuation=parseFloat(e.target.value);
+    });
     render();
 }
 
