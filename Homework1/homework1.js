@@ -32,6 +32,7 @@ var zFar = 10;
 
 
 var spotlight;
+var per_vertex = true;
 init();
 
 function init()
@@ -51,14 +52,16 @@ function init()
     //
     //  Load shaders and initialize attribute buffers
     //
-    program = initShaders(gl, "vertex-shader", "fragment-shader");
+    var per_vertex_program = initShaders(gl, "per-vertex-vertex-shader", "per-vertex-fragment-shader");
+    var per_fragment_program = initShaders(gl, "per-fragment-vertex-shader", "per-fragment-fragment-shader");
+    program = per_vertex_program;
     gl.useProgram(program);
-    table = new Table(gl);
-    table.init(program);
-    table.material.diffuse = vec4(1,0.8,0,1);
-    table.material.ambient = vec4(0.3,0.3,0.3,1);
-    table.material.specular = vec4(1,1,1,1);
-    table.material.shininess = 100;
+    table = new Table();
+    table.init(gl, program);
+    table.material.ambient = vec4(0.33,0.22,0.03,1);
+    table.material.diffuse = vec4(0.78,0.57,0.11,1);
+    table.material.specular = vec4(0.99,0.91,0.81,1);
+    table.material.shininess = 27.8;
 
     numPositions += table._numPositions;
     
@@ -66,20 +69,17 @@ function init()
     spotlight.position = vec4(1,1,1,1);
     spotlight.direction = vec4(-1,-1,-1,1);
     spotlight.opening = 25;
+    spotlight._attenuation = 1;
 
-    spotlight.ambient = spotlight.diffuse = spotlight.specular = vec4(1,1,1,1);
+    spotlight.ambient = spotlight.diffuse = vec4(1,1,1,1);
+    spotlight.specular = vec4(1,1,1,1);
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
-
-    perspectiveLoc = gl.getUniformLocation(program, "perspectiveMatrix");
-
-    modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
-
     
     gl.uniform4fv(gl.getUniformLocation(program,"AmbientProduct"), flatten(mult(table.material.ambient,spotlight.ambient)));
     gl.uniform4fv(gl.getUniformLocation(program,"DiffuseProduct"),flatten(mult(table.material.diffuse,spotlight.diffuse)));
-    gl.uniform4fv(gl.getUniformLocation(program,"SpecularLoc"),flatten(mult(table.material.specular,spotlight.specular)));
+    gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
     gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
 
     //event listeners for buttons
@@ -141,13 +141,19 @@ function init()
         spotlight._position[2]=parseFloat(e.target.value);
     });
     document.querySelector("#spotlightDX").addEventListener('input',(e)=>{
-        spotlight._direction[0]=parseFloat(e.target.value);
+        var oldDir = spotlight.direction;
+        oldDir[0] = parseFloat(e.target.value);
+        spotlight.direction = oldDir;
     });
     document.querySelector("#spotlightDY").addEventListener('input',(e)=>{
-        spotlight._direction[1]=parseFloat(e.target.value);
+        var oldDir = spotlight.direction;
+        oldDir[1] = parseFloat(e.target.value);
+        spotlight.direction = oldDir;
     });
     document.querySelector("#spotlightDZ").addEventListener('input',(e)=>{
-        spotlight._direction[2]=parseFloat(e.target.value);
+        var oldDir = spotlight.direction;
+        oldDir[2] = parseFloat(e.target.value);
+        spotlight.direction = oldDir;
     });
     document.querySelector("#spotlightAngle").addEventListener('input',(e)=>{
         spotlight.opening=parseFloat(e.target.value);
@@ -156,62 +162,18 @@ function init()
         spotlight._attenuation=parseFloat(e.target.value);
     });
 
+    document.querySelector("#changeShader").onclick = function(){
+        per_vertex = !per_vertex;
+        if(per_vertex) program = per_vertex_program;
+        else program = per_fragment_program;
+        gl.useProgram(program);
+        table.init(gl, program);
+        gl.uniform4fv(gl.getUniformLocation(program,"AmbientProduct"), flatten(mult(table.material.ambient,spotlight.ambient)));
+        gl.uniform4fv(gl.getUniformLocation(program,"DiffuseProduct"),flatten(mult(table.material.diffuse,spotlight.diffuse)));
+        gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
+        gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
+    };
     render();
-}
-
-function angle(a,b){
-    return dot(normalize(a),normalize(b));
-}
-
-function colorCube()
-{
-    quad(1, 0, 3, 2);
-    quad(2, 3, 7, 6);
-    quad(3, 0, 4, 7);
-    quad(6, 5, 1, 2);
-    quad(4, 5, 6, 7);
-    quad(5, 4, 0, 1);
-}
-
-function quad(a, b, c, d)
-{
-    var vertices = [
-        vec4(-0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5,  0.5,  0.5, 1.0),
-        vec4(0.5,  0.5,  0.5, 1.0),
-        vec4(0.5, -0.5,  0.5, 1.0),
-        vec4(-0.5, -0.5, -0.5, 1.0),
-        vec4(-0.5,  0.5, -0.5, 1.0),
-        vec4(0.5,  0.5, -0.5, 1.0),
-        vec4(0.5, -0.5, -0.5, 1.0)
-    ];
-
-    var vertexColors = [
-        vec4(0.0, 0.0, 0.0, 1.0),  // black
-        vec4(1.0, 0.0, 0.0, 1.0),  // red
-        vec4(1.0, 1.0, 0.0, 1.0),  // yellow
-        vec4(0.0, 1.0, 0.0, 1.0),  // green
-        vec4(0.0, 0.0, 1.0, 1.0),  // blue
-        vec4(1.0, 0.0, 1.0, 1.0),  // magenta
-        vec4(0.0, 1.0, 1.0, 1.0),  // cyan
-        vec4(1.0, 1.0, 1.0, 1.0)   // white
-    ];
-
-    // We need to parition the quad into two triangles in order for
-    // WebGL to be able to render it.  In this case, we create two
-    // triangles from the quad indices
-
-    //vertex color assigned by the index of the vertex
-
-    var indices = [a, b, c, a, c, d];
-
-    for ( var i = 0; i < indices.length; ++i ) {
-        positions.push( vertices[indices[i]] );
-        //colors.push( vertexColors[indices[i]] );
-
-        // for solid colored faces use
-        colors.push(vertexColors[a]);
-    }
 }
 
 function render()
@@ -223,16 +185,16 @@ function render()
     modelViewMatrix = mult(rotateX(modelViewRotAngles[0]),modelViewMatrix);
     modelViewMatrix = mult(rotateY(modelViewRotAngles[1]),modelViewMatrix);
     modelViewMatrix = mult(rotateZ(modelViewRotAngles[2]),modelViewMatrix);
-    gl.uniformMatrix4fv(modelViewLoc,false,flatten((modelViewMatrix)));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program,"modelViewMatrix"),false,flatten((modelViewMatrix)));
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
-    gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspectiveMatrix"), false, flatten((perspectiveMatrix)));
 
     var normalMatrix = (table.transform);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
     table.rotateAround(angle,iAxis,iPoint);
-    table.render();
+    table.render(gl);
     gl.drawArrays(gl.TRIANGLES, 0, table.numPositions);
     requestAnimationFrame(render);
 }

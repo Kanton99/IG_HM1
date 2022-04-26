@@ -1,16 +1,5 @@
-var basicColors=[
-    vec4(0.0, 0.0, 0.0, 1.0),  // black
-    vec4(1.0, 0.0, 0.0, 1.0),  // red
-    vec4(1.0, 1.0, 0.0, 1.0),  // yellow
-    vec4(0.0, 1.0, 0.0, 1.0),  // green
-    vec4(0.0, 0.0, 1.0, 1.0),  // blue
-    vec4(1.0, 0.0, 1.0, 1.0),  // magenta
-    vec4(1.0, 1.0, 1.0, 1.0),   // white
-    vec4(0.0, 1.0, 1.0, 1.0),  // cyan
-]
 class Entity{
-    constructor(gl){
-        this.gl = gl;
+    constructor(){
         this._transform = mat4();
         this._verticies = [];
         this.triangles = [];
@@ -18,22 +7,12 @@ class Entity{
         this.vertColors = [];
         this.normals = [];
         this._numPositions=0;
-        this.buffers;
-        this.rotationMatrixLoc;
         
         this._material = new Material();
     }
 
-    init(program){
+    init(gl, program){
         this.calculateNormals();
-        //gl.useProgram(program);
-        var cBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, flatten(this.vertColors), gl.STATIC_DRAW);
-
-        var colorLoc = gl.getAttribLocation( program, "aColor" );
-        gl.vertexAttribPointer( colorLoc, 4, gl.FLOAT, false, 0, 0 );
-        gl.enableVertexAttribArray( colorLoc );
 
         var vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -44,19 +23,16 @@ class Entity{
         gl.enableVertexAttribArray(positionLoc);
 
         var nBuffer = gl.createBuffer();
-        this.gl.bindBuffer(gl.ARRAY_BUFFER,nBuffer);
-        this.gl.bufferData(gl.ARRAY_BUFFER,flatten(this.normals),gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER,nBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER,flatten(this.normals),gl.STATIC_DRAW);
 
         var normalLoc = gl.getAttribLocation(program,"aNormal");
-        this.gl.vertexAttribPointer(normalLoc,4,gl.FLOAT,false,0,0);
-        this.gl.enableVertexAttribArray(normalLoc);
-
-        this.rotationMatrixLoc = gl.getUniformLocation(program, "objectMatrix");
-        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten(transpose(this._transform)));
+        gl.vertexAttribPointer(normalLoc,4,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(normalLoc);
     }
 
-    render(){ 
-        gl.uniformMatrix4fv(this.rotationMatrixLoc, false, flatten((this._transform)));
+    render(gl){ 
+        gl.uniformMatrix4fv( gl.getUniformLocation(program, "objectMatrix"), false, flatten((this._transform)));
         //gl.drawArrays(gl.TRIANGLES, 0, this.numPositions);
     }
     make_triangle(a,b,c){
@@ -64,24 +40,6 @@ class Entity{
         this.positions.push(this._verticies[a]);
         this.positions.push(this._verticies[b]);
         this.positions.push(this._verticies[c]);
-
-        var an = this._verticies[a];
-        var bn = this._verticies[b];
-        var cn = this._verticies[c];
-        var ab = add(an,negate(bn));
-        var ac = add(an,negate(cn));
-        var color = vec4(normalize(cross(ac,ab)));
-        for(var i = 0;i<3;i++){
-            color[i] = (color[i]+1)/2;
-        }
-        color[3] = 1;
-        //console.log(color);
-        // this.vertColors.push(basicColors[a%8]);
-        // this.vertColors.push(basicColors[a%8]);
-        // this.vertColors.push(basicColors[a%8]);
-        this.vertColors.push(color);
-        this.vertColors.push(color);
-        this.vertColors.push(color);
 
         this._numPositions+=3;
     }

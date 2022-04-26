@@ -13,7 +13,7 @@ class Spotlight{
         var lightPosLoc = gl.getUniformLocation(program, "lightPos");
         gl.uniform4fv(lightPosLoc,flatten(this._position));
         var lightDirLoc = gl.getUniformLocation(program, "lightDirection");
-        gl.uniform4fv(lightDirLoc,flatten(this._direction));
+        gl.uniform4fv(lightDirLoc,flatten(vec4(normalize(vec3(this._direction)))));
         var lightOpeningLoc = gl.getUniformLocation(program, "angle");
         gl.uniform1f(lightOpeningLoc,this._opening);
         gl.uniform1f(gl.getUniformLocation(program,"attenuationFactor"),this._attenuation);
@@ -26,6 +26,6 @@ class Spotlight{
     set opening(degree){this._opening = radians(degree);}
 
     get direction(){return this._direction;}
-    set direction(direction){this._direction = vec4(normalize(vec3(direction)));}
+    set direction(direction){this._direction = direction;}
 
 }
