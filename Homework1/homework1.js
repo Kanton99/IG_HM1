@@ -155,7 +155,12 @@ function init()
     document.querySelector("#SpotlightAtt").addEventListener('input',(e)=>{
         spotlight._attenuation=parseFloat(e.target.value);
     });
+
     render();
+}
+
+function angle(a,b){
+    return dot(normalize(a),normalize(b));
 }
 
 function colorCube()

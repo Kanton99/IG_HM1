@@ -12,7 +12,7 @@ class Entity{
     constructor(gl){
         this.gl = gl;
         this._transform = mat4();
-        this.verticies = [];
+        this._verticies = [];
         this.triangles = [];
         this.positions = [];
         this.vertColors = [];
@@ -61,13 +61,13 @@ class Entity{
     }
     make_triangle(a,b,c){
         this.triangles.push([a,b,c]);
-        this.positions.push(this.verticies[a]);
-        this.positions.push(this.verticies[b]);
-        this.positions.push(this.verticies[c]);
+        this.positions.push(this._verticies[a]);
+        this.positions.push(this._verticies[b]);
+        this.positions.push(this._verticies[c]);
 
-        var an = this.verticies[a];
-        var bn = this.verticies[b];
-        var cn = this.verticies[c];
+        var an = this._verticies[a];
+        var bn = this._verticies[b];
+        var cn = this._verticies[c];
         var ab = add(an,negate(bn));
         var ac = add(an,negate(cn));
         var color = vec4(normalize(cross(ac,ab)));
@@ -110,7 +110,7 @@ class Entity{
             vertex[3] = 1;
             vertex = mult(_position,vertex);
             vertex[3] = 1;
-            this.verticies.push(vertex);
+            this._verticies.push(vertex);
         }
         /* 
         -1 -1 -1 -0
@@ -145,9 +145,9 @@ class Entity{
         var normals = [];
         var l = this.triangles.length;
         for(var i = 0;i<l;++i){
-            var a = this.verticies[this.triangles[i][0]];
-            var b = this.verticies[this.triangles[i][1]];
-            var c = this.verticies[this.triangles[i][2]];
+            var a = this._verticies[this.triangles[i][0]];
+            var b = this._verticies[this.triangles[i][1]];
+            var c = this._verticies[this.triangles[i][2]];
             a = (vec3(a[0],a[1],a[2]));
             b = (vec3(b[0],b[1],b[2]));
             c = (vec3(c[0],c[1],c[2]));
@@ -164,4 +164,6 @@ class Entity{
 
     get material(){return this._material;}
     set material(material){this._material = material;}
+
+    get verticies(){return this._verticies;}
 }

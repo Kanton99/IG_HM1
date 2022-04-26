@@ -26,6 +26,6 @@ class Spotlight{
     set opening(degree){this._opening = radians(degree);}
 
     get direction(){return this._direction;}
-    set direction(direction){this._direction = (direction);this._direction[3]=1;}
+    set direction(direction){this._direction = vec4(normalize(vec3(direction)));}
 
 }
