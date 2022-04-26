@@ -44,7 +44,8 @@
             <input id="spotlightDZ" type="number" value="-1">   
         </div>
         <div>Spotlight angle
-            <input id="spotlightAngle" type="range" min="0" max="180" value="25">
+            <input id="spotlightAngle" type="range" min="0" max="180" value="25" oninput="this.nextElementSibling.value = this.value">
+            <output>25</output>
         </div>
         <div>Spotlight attenuation factor 
             <input id="SpotlightAtt" type="number" value="0" min="0">
