@@ -55,13 +55,19 @@ function init()
     gl.useProgram(program);
     table = new Table(gl);
     table.init(program);
+    table.material.diffuse = vec4(1,0.8,0,1);
+    table.material.ambient = vec4(0.3,0.3,0.3,1);
+    table.material.specular = vec4(1,1,1,1);
+    table.material.shininess = 100;
+
     numPositions += table._numPositions;
     
     spotlight = new Spotlight();
     spotlight.position = vec4(1,1,1,1);
-    spotlight.color = vec4(1,1,1,1);
     spotlight.direction = vec4(-1,-1,-1,1);
-    spotlight.opening = 10;
+    spotlight.opening = 25;
+
+    spotlight.ambient = spotlight.diffuse = spotlight.specular = vec4(1,1,1,1);
 
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
@@ -70,22 +76,11 @@ function init()
 
     modelViewLoc = gl.getUniformLocation(program,"modelViewMatrix");
 
-    // var cBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(colors), gl.STATIC_DRAW);
-
-    // var colorLoc = gl.getAttribLocation( program, "aColor" );
-    // gl.vertexAttribPointer( colorLoc, 4, gl.FLOAT, false, 0, 0 );
-    // gl.enableVertexAttribArray( colorLoc );
-
-    // var vBuffer = gl.createBuffer();
-    // gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
-    // gl.bufferData(gl.ARRAY_BUFFER, flatten(positions), gl.STATIC_DRAW);
-
-
-    // var positionLoc = gl.getAttribLocation(program, "aPosition");
-    // gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
-    // gl.enableVertexAttribArray(positionLoc);
+    
+    gl.uniform4fv(gl.getUniformLocation(program,"AmbientProduct"), flatten(mult(table.material.ambient,spotlight.ambient)));
+    gl.uniform4fv(gl.getUniformLocation(program,"DiffuseProduct"),flatten(mult(table.material.diffuse,spotlight.diffuse)));
+    gl.uniform4fv(gl.getUniformLocation(program,"SpecularLoc"),flatten(mult(table.material.specular,spotlight.specular)));
+    gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
 
     //event listeners for buttons
     document.querySelector('#rotation').addEventListener('input', (e)=>{
@@ -228,8 +223,7 @@ function render()
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     gl.uniformMatrix4fv(perspectiveLoc, false, flatten((perspectiveMatrix)));
 
-    var normalMatrix = table.transform;
-    normalMatrix = transpose(normalMatrix);
+    var normalMatrix = (table.transform);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
     table.rotateAround(angle,iAxis,iPoint);

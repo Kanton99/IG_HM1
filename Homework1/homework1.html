@@ -2,113 +2,122 @@
 <html>
 <body>
 <canvas id="gl-canvas" width="512" height="512"> </canvas>
-
-<div>angle of rotation: <input id="rotation" type="number" value="0"></div>
-<div>axis of rotation: 
-    <input id="axisX" type="number" value="0">
-    <input id="axisY" type="number" value="0">
-    <input id="axisZ" type="number" value="0">
-</div>
-<div>centre of rotation: 
-    <input id="centreX" type="number" value="0">
-    <input id="centreY" type="number" value="0">
-    <input id="centreZ" type="number" value="0">
-</div>
-<div>
-    <div>
-        move camera
-        <input id="cameraTX" type="range" min="-0.1" max="0.1" step="0.01" value="0">
-        <input id="cameraTY" type="range" min="-0.1" max="0.1" step="0.01" value="0">
-        <input id="cameraTZ" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+<div name="controls">
+    <div>angle of rotation: <input id="rotation" type="number" value="0"></div>
+    <div>axis of rotation: 
+        <input id="axisX" type="number" value="0">
+        <input id="axisY" type="number" value="0">
+        <input id="axisZ" type="number" value="0">
+    </div>
+    <div>centre of rotation: 
+        <input id="centreX" type="number" value="0">
+        <input id="centreY" type="number" value="0">
+        <input id="centreZ" type="number" value="0">
     </div>
     <div>
-        rotate camera
-        <input id="cameraRY" type="range" min="-1" max="1" step="0.1" value="0">
-        <input id="cameraRX" type="range" min="-1" max="1" step="0.1" value="0">
-        <input id="cameraRZ" type="range" min="-1" max="1" step="0.1" value="0">
+        <div>
+            move camera
+            <input id="cameraTX" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+            <input id="cameraTY" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+            <input id="cameraTZ" type="range" min="-0.1" max="0.1" step="0.01" value="0">
+        </div>
+        <div>
+            rotate camera
+            <input id="cameraRY" type="range" min="-1" max="1" step="0.1" value="0">
+            <input id="cameraRX" type="range" min="-1" max="1" step="0.1" value="0">
+            <input id="cameraRZ" type="range" min="-1" max="1" step="0.1" value="0">
+        </div>
     </div>
-</div>
-<div>bounding box controls: 
-    <input id="zNear" type="number" value="0.1" step="0.1">
-    <input id="zFar" type="number" value="10" step="0.1">
-</div>
-<div>
-    <div>Spotlight position
-        <input id="spotlightPX" type="number" value="1">   
-        <input id="spotlightPY" type="number" value="1">   
-        <input id="spotlightPZ" type="number" value="1">   
+    <div>bounding box controls: 
+        <input id="zNear" type="number" value="0.1" step="0.1">
+        <input id="zFar" type="number" value="10" step="0.1">
     </div>
-    <div>SpotlightDirection
-        <input id="spotlightDX" type="number" value="-1">   
-        <input id="spotlightDY" type="number" value="-1">   
-        <input id="spotlightDZ" type="number" value="-1">   
-    </div>
-    <div>Spotlight angle
-        <input id="spotlightAngle" type="number" value="10">
-    </div>
-    <div>Spotlight attenuation factor 
-        <input id="SpotlightAtt" type="number" value="1">
+    <div>
+        <div>Spotlight position
+            <input id="spotlightPX" type="number" value="1">   
+            <input id="spotlightPY" type="number" value="1">   
+            <input id="spotlightPZ" type="number" value="1">   
+        </div>
+        <div>SpotlightDirection
+            <input id="spotlightDX" type="number" value="-1">   
+            <input id="spotlightDY" type="number" value="-1">   
+            <input id="spotlightDZ" type="number" value="-1">   
+        </div>
+        <div>Spotlight angle
+            <input id="spotlightAngle" type="range" min="0" max="180" value="25">
+        </div>
+        <div>Spotlight attenuation factor 
+            <input id="SpotlightAtt" type="number" value="0" min="0">
+        </div>
     </div>
 </div>
 
 <script id="vertex-shader" type="x-shader/x-vertex">
-#version 300 es
+    #version 300 es
 
-in  vec4 aPosition;
-in  vec4 aColor;
-in  vec4 aNormal; 
+    in vec4 aPosition;
+    in vec4 aNormal; 
+    in vec4 aColor;
+    
+    uniform mat4 objectMatrix; 
+    uniform mat4 perspectiveMatrix;
+    uniform mat4 modelViewMatrix;
+    uniform mat4 normalMatrix;
+    
+    uniform vec4 lightPos;
+    uniform float angle;
+    uniform vec4 lightDirection;
+    uniform float attenuationFactor;
+    
+    uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
+    uniform float Shininess;
+    
+    out vec4 vColor;
+    
+    
+    void main()
+    {
+        vec4 vPosition = objectMatrix * aPosition;
+        gl_Position =  perspectiveMatrix * modelViewMatrix * vPosition;
+    
+        vec4 ambient,diffuse,specular;
+        vec3 N = normalize((normalMatrix*aNormal).xyz);
+        vec3 L = normalize(lightPos.xyz-(modelViewMatrix*vPosition).xyz);
+        L = -lightDirection.xyz;
+        vec3 E = -normalize((modelViewMatrix*vPosition).xyz);
+        vec3 H = normalize(L+E);
+        float Kd = max(dot(L,N),0.f);
+        float Ks = pow(max(dot(N,H),0.f), Shininess);
+        ambient = AmbientProduct;
+        diffuse = Kd*DiffuseProduct;
+        specular = max(pow(max(dot(N,H),0.f),Shininess)*SpecularProduct, 0.f);
 
-uniform vec4 lightPos;
-uniform float angle;
-uniform vec4 lightDirection;
-uniform vec4 lightColor;
-uniform float attenuationFactor;
+        float cosPhi = dot(lightDirection.xyz,normalize(vPosition.xyz-lightPos.xyz));
+        float inLight = float(cosPhi>=cos(angle));
+        float attenuation = pow(cosPhi,attenuationFactor)*inLight;
 
-out vec4 vColor;
-out vec3 vLighting;
-
-uniform mat4 objectMatrix; 
-uniform mat4 perspectiveMatrix;
-uniform mat4 modelViewMatrix;
-uniform mat4 normalMatrix;
-
-void main()
-{
-    vec4 worldPos = objectMatrix * aPosition;
-    gl_Position =  perspectiveMatrix * modelViewMatrix * worldPos;
-
-    highp vec4 transformedNormal =  normalize(aNormal*normalMatrix);
-    vec3 posToLight = normalize((worldPos-lightPos).xyz);
-    highp float directional = 0.f;
-    highp float intensity = 0.f;
-    if(dot(posToLight,normalize(lightDirection.xyz))>=cos(angle)){
-        float normToLightAngle = dot(transformedNormal.xyz, -normalize(lightDirection.xyz));
-        directional = max(normToLightAngle, 0.0);
-        intensity = pow(cos(normToLightAngle),attenuationFactor);
-    }
-    vColor = aColor;
-    vLighting = (lightColor.rgb * directional * intensity);
-}
+        vColor = vec4((ambient+(diffuse+specular)*attenuation*inLight).xyz,1.f);
+        //vColor = vec4(cosPhi,cosPhi,cosPhi,1.f);
+    } 
 </script>
 <script id="fragment-shader" type="x-shader/x-fragment">
-#version 300 es
+    #version 300 es
 
-precision mediump float;
-
-in vec4 vColor;
-in vec3 vLighting;
-out vec4 fColor;
-
-void
-main()
-{
-    fColor = vec4(vColor.rgb*vLighting,1);
-    //fColor = vColor;
-}
+    precision mediump float;
+    
+    in vec4 vColor;
+    out vec4 fColor;
+    
+    void
+    main()
+    {
+        fColor = vColor;
+    }
 </script>
 
 <script src="../Common/initShaders.js"></script>
 <script src="../Common/MV.js"></script>
+<script src="Material.js"></script>
 <script src="Entity.js"></script>
 <script src="Table.js"></script>
 <script src="Spotlight.js"></script>

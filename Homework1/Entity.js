@@ -21,6 +21,7 @@ class Entity{
         this.buffers;
         this.rotationMatrixLoc;
         
+        this._material = new Material();
     }
 
     init(program){
@@ -160,4 +161,7 @@ class Entity{
 
         this.normals = normals;
     }
+
+    get material(){return this._material;}
+    set material(material){this._material = material;}
 }
