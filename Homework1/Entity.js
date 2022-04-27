@@ -9,6 +9,7 @@ class Entity{
         this._numPositions=0;
         
         this._material = new Material();
+        this._texture;
     }
 
     init(gl, program){
@@ -124,4 +125,7 @@ class Entity{
     set material(material){this._material = material;}
 
     get verticies(){return this._verticies;}
+
+    get texture(){return this._texture;}
+    texture(gl, image){this._texture = new Texture(gl, image);}
 }

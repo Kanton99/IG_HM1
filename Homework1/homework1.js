@@ -42,7 +42,6 @@ function init()
     gl = canvas.getContext('webgl2');
     if (!gl) alert("WebGL 2.0 isn't available");
     aspect = canvas.width/canvas.height
-    //colorCube();
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -56,12 +55,14 @@ function init()
     var per_fragment_program = initShaders(gl, "per-fragment-vertex-shader", "per-fragment-fragment-shader");
     program = per_vertex_program;
     gl.useProgram(program);
+
     table = new Table();
     table.init(gl, program);
     table.material.ambient = vec4(0.33,0.22,0.03,1);
     table.material.diffuse = vec4(0.78,0.57,0.11,1);
     table.material.specular = vec4(0.99,0.91,0.81,1);
     table.material.shininess = 27.8;
+    table.texture(gl,"woodTexture.jpg");
 
     numPositions += table._numPositions;
     
@@ -83,6 +84,7 @@ function init()
     gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
 
     //event listeners for buttons
+    //#region listeners
     document.querySelector('#rotation').addEventListener('input', (e)=>{
         angle = parseFloat(e.target.value);
     });
@@ -173,6 +175,8 @@ function init()
         gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
         gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
     };
+    //#endregion
+    
     render();
 }
 
