@@ -132,6 +132,7 @@
 
     in vec4 aPosition;
     in vec4 aNormal;
+    in vec2 aTextureCoord;
 
     uniform mat4 objectMatrix;
     uniform mat4 modelViewMatrix;
@@ -143,6 +144,7 @@
     out vec3 N;
     out vec3 L;
     out vec3 E;
+    out vec2 vTextureCoord;
     void main(){
         vec4 vPosition = objectMatrix * aPosition;
         gl_Position = perspectiveMatrix * modelViewMatrix * vPosition;
@@ -150,6 +152,7 @@
         L = lightPos.xyz - vPosition.xyz;
         if(lightPos.w == 0.f) L = lightPos.xyz;
         E = vPosition.xyz;
+        vTextureCoord = aTextureCoord;
     }
 </script>
 <script id="per-fragment-fragment-shader" type="x-shader/x-fragment">
@@ -162,10 +165,12 @@
     in vec3 N;
     in vec3 L;
     in vec3 E;
+    in vec2 vTextureCoord;
 
     uniform float angle;
     uniform vec4 lightDirection;
     uniform float attenuationFactor;
+    uniform sampler2D uSampler;
 
     out vec4 fColor;
     void main()
@@ -188,7 +193,7 @@
         float light = pow(cosPhi,attenuationFactor) * inLight;
 
         vec4 intensity = ambient + ((specular+diffuse)*light);
-        fColor = vec4(intensity.xyz, 1.0);
+        fColor = vec4(intensity.xyz, 1.0) * texture(uSampler,vTextureCoord);
         //fColor = vec4(light,light,light,1.f);
     }
 </script>
