@@ -58,10 +58,10 @@ function init()
 
     table = new Table();
     table.init(gl, program);
-    table.material.ambient = vec4(0.1,0.1,0.1,1);
+    table.material.ambient = vec4(0.5,0.5,0.5,1);
     table.material.diffuse = vec4(1,1,1,1);
-    table.material.specular = vec4(1,1,1,1);
-    table.material.shininess = 2;
+    table.material.specular = vec4(0.3,0.3,0.3,1);
+    table.material.shininess = 27.8;
     table.texture(gl,"woodTexture.png");
 
     numPositions += table._numPositions;

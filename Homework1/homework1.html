@@ -54,6 +54,9 @@
     <div>change shading
         <input id="changeShader" type="button">
     </div>
+    <div>disable texture
+        <input id="disableTexture" type="button">
+    </div>
 </div>
 
 <div name="shaders">
@@ -189,8 +192,10 @@
         else specular = Ks*SpecularProduct;
 
         float cosPhi = dot(LL,-normalize(lightDirection.xyz));
+        float d = float(dot(LL,NN)>=0.f);
         float inLight = float(cosPhi>=cos(angle));
-        float light = pow(cosPhi,attenuationFactor) * inLight;
+        float attenuation = pow(cosPhi,attenuationFactor);
+        float light = (attenuation * inLight);
 
         vec4 intensity = ambient + ((specular+diffuse)*light);
         fColor = vec4(intensity.xyz, 1.0) * texture(uSampler,vTextureCoord);
