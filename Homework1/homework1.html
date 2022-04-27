@@ -181,7 +181,7 @@
         vec4 ambient, diffuse, specular;
         vec3 H = normalize(LL+EE);
         float Kd = max(dot(LL, NN), 0.0);
-        Kd = dot(LL, NN);
+        //Kd = dot(LL, NN);
         float Ks = pow(max(dot(NN, H), 0.0), Shininess);
         ambient = AmbientProduct;
         diffuse = Kd*DiffuseProduct;
