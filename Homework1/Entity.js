@@ -9,11 +9,12 @@ class Entity{
         this._numPositions=0;
         
         this._material = new Material();
-        this._texture;
+        this._texture = new Texture();
     }
 
     init(gl, program){
         this.calculateNormals();
+        this.gen_textCoods();
 
         var vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -30,6 +31,18 @@ class Entity{
         var normalLoc = gl.getAttribLocation(program,"aNormal");
         gl.vertexAttribPointer(normalLoc,4,gl.FLOAT,false,0,0);
         gl.enableVertexAttribArray(normalLoc);
+        
+        var tBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER,tBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER,flatten(this._texture._textCoords),gl.STATIC_DRAW);
+
+        var textureLoc = gl.getAttribLocation(program,"aTextureCoord");
+        gl.vertexAttribPointer(textureLoc,2,gl.FLOAT,false,0,0);
+        gl.enableVertexAttribArray(textureLoc);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, this._texture._texture);
+        gl.uniform1i(gl.getUniformLocation(program,"uSampler"),0);
     }
 
     render(gl){ 
@@ -51,10 +64,24 @@ class Entity{
         this.make_triangle(a,c,d);
     }
 
+    gen_textCoods(){
+        for(var i = 0;i<this.positions.length/4;i++){  
+            this._texture._textCoords.push(vec2(0,0));
+            this._texture._textCoords.push(vec2(0,1));
+            this._texture._textCoords.push(vec2(1,1));
+
+            this._texture._textCoords.push(vec2(0,0));
+            this._texture._textCoords.push(vec2(1,1));
+            this._texture._textCoords.push(vec2(1,0));
+
+        }
+    }
+
     get transform(){return this._transform;}
     set transform(m){this._transform = m;}
 
     get numPositions(){return this._numPositions;}
+
     make_cube(offset, scale, position){
         scale = mult(this._transform,vec4(scale));
         var _scale = mat4();
@@ -127,5 +154,5 @@ class Entity{
     get verticies(){return this._verticies;}
 
     get texture(){return this._texture;}
-    texture(gl, image){this._texture = new Texture(gl, image);}
+    texture(gl, image){this._texture.loadTexture(gl, image);}
 }

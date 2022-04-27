@@ -56,11 +56,13 @@
     </div>
 </div>
 
+<div name="shaders">
 <script id="per-vertex-vertex-shader" type="x-shader/x-vertex">
     #version 300 es
 
     in vec4 aPosition;
     in vec4 aNormal; 
+    in vec2 aTextureCoord;
     
     uniform mat4 objectMatrix; 
     uniform mat4 perspectiveMatrix;
@@ -76,6 +78,7 @@
     uniform float Shininess;
     
     out vec4 vColor;
+    out vec2 vTextureCoord;
     
     
     void main()
@@ -101,21 +104,26 @@
 
         vec4 intensity = ambient+((diffuse+specular)*attenuation);
         vColor = vec4(intensity.xyz,1.f);
+        vColor = vec4(1,1,1,1);
+        vTextureCoord = aTextureCoord;
         //vColor = vec4(cosPhi,cosPhi,cosPhi,1.f);
     } 
 </script>
 <script id="per-vertex-fragment-shader" type="x-shader/x-fragment">
     #version 300 es
 
-    precision mediump float;
+    precision highp float;
     
     in vec4 vColor;
+    in vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
     out vec4 fColor;
     
     void
     main()
     {
-        fColor = vColor;
+        fColor =  vColor * texture(uSampler,vTextureCoord);
     }
 </script>
 
@@ -184,7 +192,7 @@
         //fColor = vec4(light,light,light,1.f);
     }
 </script>
-
+</div>
 
 <script src="../Common/initShaders.js"></script>
 <script src="../Common/MV.js"></script>
@@ -194,6 +202,5 @@
 <script src="Table.js"></script>
 <script src="Spotlight.js"></script>
 <script src="homework1.js"></script>
-<img src="woodTexture.jpg">
 </body>
 </html>
