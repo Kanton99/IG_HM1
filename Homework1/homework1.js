@@ -63,7 +63,6 @@ function init()
     table.material.specular = vec4(1,1,1,1);
     table.material.shininess = 2;
     table.texture(gl,"woodTexture.png");
-    table.transform = mult(rotateX(90),table.transform);
 
     numPositions += table._numPositions;
     
