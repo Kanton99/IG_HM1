@@ -160,6 +160,7 @@
 </script>
 <script id="per-fragment-fragment-shader" type="x-shader/x-fragment">
     #version 300 es
+    #define M_PI 3.1415926535897932384626433832795
 
     precision mediump float;
 
@@ -176,6 +177,12 @@
     uniform sampler2D uSampler;
 
     out vec4 fColor;
+
+    
+    float map(float value,float oMin,float oMax,float nMin,float nMax){
+        float perc = (value-oMin)/(oMax-oMin);
+        return (perc*(nMax-nMin))+nMin;
+    }
     void main()
     {
         vec3 NN = normalize(N);
@@ -199,7 +206,36 @@
 
         vec4 intensity = ambient + ((specular+diffuse)*light);
         fColor = vec4(intensity.xyz, 1.0) * texture(uSampler,vTextureCoord);
-        //fColor = vec4(light,light,light,1.f);
+    }
+
+</script>
+
+<script id="final-render-vertex" type="x-shader/x-vertex">
+    #version 300 es
+
+    in vec4 aPosition;
+    in vec2 aTextureCoord;
+
+    out vec2 vTexCoord;
+
+    void main(){
+        gl_Position = aPosition;
+        vTexCoord = aTextureCoord;
+    }
+</script>
+<script id="final-render-fragment" type="x-shader/x-fragment">
+    #version 300 es
+
+    precision mediump float;
+    
+    in vec2 vTexCoord;
+
+    out vec4 fColor;
+
+    uniform sampler2D uSampler;
+
+    void main(){
+        fColor = texture(uSampler,vTexCoord);
     }
 </script>
 </div>
