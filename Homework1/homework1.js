@@ -33,6 +33,7 @@ var zFar = 10;
 
 var spotlight;
 var per_vertex = true;
+var texture=true;
 init();
 
 function init()
@@ -175,6 +176,11 @@ function init()
         gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
         gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
     };
+
+    document.querySelector("#disableTexture").onclick = function(){
+        texture = !texture;
+        table.texture(gl,(texture ? "woodTexture.png" : ""));
+    }
     //#endregion
     
     render();
