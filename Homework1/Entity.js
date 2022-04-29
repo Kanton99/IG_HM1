@@ -40,9 +40,9 @@ class Entity{
         gl.vertexAttribPointer(textureLoc,2,gl.FLOAT,false,0,0);
         gl.enableVertexAttribArray(textureLoc);
 
-        gl.activeTexture(gl.TEXTURE1);
+        gl.activeTexture(gl.TEXTURE2);
         gl.bindTexture(gl.TEXTURE_2D, this._texture._texture);
-        gl.uniform1i(gl.getUniformLocation(program,"sampler1"),1);
+        gl.uniform1i(gl.getUniformLocation(program,"objectTexture"),2);
     }
 
     update(gl){ 
