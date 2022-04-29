@@ -84,22 +84,23 @@ function init()
     //#region Table setup
     table = new Table();
     table.init(gl, program);
-    table.material.ambient = vec4(0.5,0.5,0.5,1);
-    table.material.diffuse = vec4(1,1,1,1);
+    table.material.ambient = vec4(1,1,1,1);
+    table.material.diffuse = vec4(0.5,0.5,0.5,1);
     table.material.specular = vec4(1,1,1,1);
-    table.material.shininess = 27.8;
+    table.material.shininess = 10;
     table.texture(gl,"woodTexture.png");
     numPositions += table._numPositions;
     //#endregion
     
     //#region Spotlight setup
     spotlight = new Spotlight();
-    spotlight.position = vec4(1,1,1,1);
+    spotlight.position = vec4(2,2,2,1);
     spotlight.direction = vec4(-1,-1,-1,1);
     spotlight.opening = 25;
     spotlight._attenuation = 1;
 
-    spotlight.ambient = spotlight.diffuse = vec4(1,1,1,1);
+    spotlight.ambient = vec4(0.3,0.3,0.3,1);
+    spotlight.diffuse = vec4(1,1,1,1);
     spotlight.specular = vec4(1,1,1,1);
     //#endregion
     
@@ -138,14 +139,20 @@ function init()
     var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
     if(status != gl.FRAMEBUFFER_COMPLETE) alert("Frame buffer not complete");
 
+
     gl.useProgram(program);
     //render to frame buffer
     gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer);
 
+    var depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER,depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,canvas.width,canvas.height);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+    //gl.bindRenderbuffer(gl.RENDERBUFFER,null);
+    gl.enable(gl.DEPTH_TEST);
     update();
     gl.viewport(0,0,canvas.width, canvas.height);
-    gl.clearColor(1,1,1,1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
 
     // send data to GPU for normal render
@@ -296,23 +303,23 @@ function render()
         gl.bindTexture(gl.TEXTURE_2D, texture2);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
     }
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
+    //gl.viewport(0,0,canvas.width,canvas.height);
+    //gl.clear(gl.COLOR_BUFFER_BIT);
+    //gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
 
     gl.useProgram(program1);
     gl.drawArrays(gl.TRIANGLES,0,6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, flag ? texture1 : texture2);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
 
-    flag = flag;
+    flag = !flag;
 
     requestAnimationFrame(render);
 }
 
 function update(){
-
     //#region camera change
     modelViewMatrix = mult(translate(modelViewMove[0],modelViewMove[1],(modelViewMove[2])),modelViewMatrix);
     modelViewMatrix = mult(rotateX(modelViewRotAngles[0]),modelViewMatrix);

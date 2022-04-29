@@ -86,11 +86,11 @@
     
     void main()
     {
-        vec4 vPosition = objectMatrix * aPosition;
+        vec4 vPosition = (objectMatrix) * aPosition;
         gl_Position =  perspectiveMatrix * modelViewMatrix * vPosition;
     
         vec4 ambient,diffuse,specular;
-        vec3 N = normalize((normalMatrix*aNormal).xyz);
+        vec3 N = normalize(((normalMatrix)*aNormal).xyz);
         vec3 L = normalize(lightPos.xyz-(modelViewMatrix*vPosition).xyz);
         L = -lightDirection.xyz;
         vec3 E = -normalize((modelViewMatrix*vPosition).xyz);
@@ -124,7 +124,7 @@
     void
     main()
     {
-        fColor =  vColor * vec4(texture(uSampler,vTextureCoord).xyz,1.f);
+        fColor = vColor * texture(uSampler,vTextureCoord);
         //fColor = vec4(vTextureCoord.y,vTextureCoord.x,0,1);
     }
 </script>
