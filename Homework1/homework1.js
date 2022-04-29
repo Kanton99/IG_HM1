@@ -84,9 +84,9 @@ function init()
     //#region Table setup
     table = new Table();
     table.init(gl, program);
-    table.material.ambient = vec4(0.5,0.5,0.5,1);
-    table.material.diffuse = vec4(1,1,1,1);
-    table.material.specular = vec4(0.3,0.3,0.3,1);
+    table.material.ambient = vec4(0.9,0.4,0,1);
+    table.material.diffuse = vec4(1,0.5,0,1);
+    table.material.specular = vec4(1,1,1,1);
     table.material.shininess = 27.8;
     table.texture(gl,"woodTexture.png");
     numPositions += table._numPositions;
@@ -140,13 +140,13 @@ function init()
 
     gl.useProgram(program);
     //render to frame buffer
-    update();
     gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer);
 
+    update();
     gl.viewport(0,0,canvas.width, canvas.height);
-    gl.clearColor(0,0,0,1);
+    gl.clearColor(1,1,1,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES,0,numPositions);
+    gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
 
     // send data to GPU for normal render
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
@@ -166,7 +166,7 @@ function init()
     gl.bindBuffer( gl.ARRAY_BUFFER, buffer3);
     gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoord), gl.STATIC_DRAW);
 
-    var texCoordLoc = gl.getAttribLocation( program1, "aTextureCoord");
+    var texCoordLoc = gl.getAttribLocation( program1, "aTexCoord");
     gl.vertexAttribPointer( texCoordLoc, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( texCoordLoc );
 
@@ -174,6 +174,9 @@ function init()
 
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
     gl.viewport(0, 0, canvas.width, canvas.height);
+    
+    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if(status != gl.FRAMEBUFFER_COMPLETE) alert("Frame buffer not complete");
     //#endregion
 
     //event listeners for buttons
@@ -293,14 +296,13 @@ function render()
         gl.bindTexture(gl.TEXTURE_2D, texture2);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
     }
-    //gl.clear(gl.COLOR_BUFFER_BIT);
-    //gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
 
     gl.useProgram(program1);
     gl.drawArrays(gl.TRIANGLES,0,6);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, flag ? texture1 : texture2);
-
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
 
@@ -310,7 +312,6 @@ function render()
 }
 
 function update(){
-    spotlight.render(gl,program);
 
     //#region camera change
     modelViewMatrix = mult(translate(modelViewMove[0],modelViewMove[1],(modelViewMove[2])),modelViewMatrix);
@@ -323,10 +324,11 @@ function update(){
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspectiveMatrix"), false, flatten((perspectiveMatrix)));
 
-    var normalMatrix = (table.transform);
+    var normalMatrix = transpose(table.transform);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
 
     table.rotateAround(angle,iAxis,iPoint);
-    table.render(gl);
+    table.update(gl);
+    spotlight.update(gl,program);
 }

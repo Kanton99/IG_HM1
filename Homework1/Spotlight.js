@@ -9,7 +9,7 @@ class Spotlight{
         this.ambient = this.diffuse = this.specular = vec4();
     }
 
-    render(gl, program){
+    update(gl, program){
         var lightPosLoc = gl.getUniformLocation(program, "lightPos");
         gl.uniform4fv(lightPosLoc,flatten(this._position));
         var lightDirLoc = gl.getUniformLocation(program, "lightDirection");

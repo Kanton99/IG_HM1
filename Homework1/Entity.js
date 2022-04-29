@@ -40,12 +40,14 @@ class Entity{
         gl.vertexAttribPointer(textureLoc,2,gl.FLOAT,false,0,0);
         gl.enableVertexAttribArray(textureLoc);
 
-        gl.activeTexture(gl.TEXTURE0);
+        gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this._texture._texture);
         gl.uniform1i(gl.getUniformLocation(program,"uSampler"),0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.activeTexture(gl.TEXTURE0);
     }
 
-    render(gl){ 
+    update(gl){ 
         gl.uniformMatrix4fv( gl.getUniformLocation(program, "objectMatrix"), false, flatten((this._transform)));
         //gl.drawArrays(gl.TRIANGLES, 0, this.numPositions);
     }

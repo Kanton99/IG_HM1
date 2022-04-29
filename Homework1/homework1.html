@@ -107,9 +107,7 @@
 
         vec4 intensity = ambient+((diffuse+specular)*attenuation);
         vColor = vec4(intensity.xyz,1.f);
-        //vColor = vec4(1,1,1,1);
         vTextureCoord = aTextureCoord;
-        //vColor = vec4(cosPhi,cosPhi,cosPhi,1.f);
     } 
 </script>
 <script id="per-vertex-fragment-shader" type="x-shader/x-fragment">
@@ -126,7 +124,8 @@
     void
     main()
     {
-        fColor =  vColor * texture(uSampler,vTextureCoord);
+        fColor =  vColor * vec4(texture(uSampler,vTextureCoord).xyz,1.f);
+        fColor = vec4(vTextureCoord.y,vTextureCoord.x,0,1);
     }
 </script>
 
@@ -214,13 +213,13 @@
     #version 300 es
 
     in vec4 aPosition;
-    in vec2 aTextureCoord;
+    in vec2 aTexCoord;
 
     out vec2 vTexCoord;
 
     void main(){
         gl_Position = aPosition;
-        vTexCoord = aTextureCoord;
+        vTexCoord = aTexCoord;
     }
 </script>
 <script id="final-render-fragment" type="x-shader/x-fragment">
@@ -235,7 +234,8 @@
     uniform sampler2D uSampler;
 
     void main(){
-        fColor = texture(uSampler,vTexCoord);
+        fColor = vec4(texture(uSampler,vTexCoord).xyz,1.f);
+        //fColor = texture(uSampler,vTexCoord);
     }
 </script>
 </div>
