@@ -173,7 +173,7 @@
     uniform float angle;
     uniform vec4 lightDirection;
     uniform float attenuationFactor;
-    uniform sampler2D uSampler;
+    uniform sampler2D objectTexture;
 
     out vec4 fColor;
 
@@ -204,7 +204,7 @@
         float light = (attenuation * inLight);
 
         vec4 intensity = ambient + ((specular+diffuse)*light);
-        fColor = vec4(intensity.xyz, 1.0) * texture(uSampler,vTextureCoord);
+        fColor = vec4(intensity.xyz, 1.0) * texture(objectTexture,vTextureCoord);
     }
 
 </script>

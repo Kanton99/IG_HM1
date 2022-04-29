@@ -295,7 +295,6 @@ function render()
     renderScene()
 
     gl.useProgram(program1);
-    buffer2 = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, buffer2);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
 
@@ -303,7 +302,6 @@ function render()
     gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray( positionLoc );
 
-    buffer3 = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, buffer3);
     gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoord), gl.STATIC_DRAW);
 
