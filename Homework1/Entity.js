@@ -42,7 +42,7 @@ class Entity{
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, this._texture._texture);
-        gl.uniform1i(gl.getUniformLocation(program,"uSampler"),1);
+        gl.uniform1i(gl.getUniformLocation(program,"sampler1"),1);
     }
 
     update(gl){ 

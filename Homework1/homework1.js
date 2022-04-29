@@ -88,7 +88,7 @@ function init()
     table.material.diffuse = vec4(0.5,0.5,0.5,1);
     table.material.specular = vec4(1,1,1,1);
     table.material.shininess = 10;
-    table.texture(gl,"woodTexture.png");
+    table.texture(gl,".\woodTexture.png");
     numPositions += table._numPositions;
     //#endregion
     
