@@ -84,8 +84,8 @@ function init()
     //#region Table setup
     table = new Table();
     table.init(gl, program);
-    table.material.ambient = vec4(0.9,0.4,0,1);
-    table.material.diffuse = vec4(1,0.5,0,1);
+    table.material.ambient = vec4(0.5,0.5,0.5,1);
+    table.material.diffuse = vec4(1,1,1,1);
     table.material.specular = vec4(1,1,1,1);
     table.material.shininess = 27.8;
     table.texture(gl,"woodTexture.png");
@@ -324,7 +324,7 @@ function update(){
     perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspectiveMatrix"), false, flatten((perspectiveMatrix)));
 
-    var normalMatrix = transpose(table.transform);
+    var normalMatrix = (table.transform);
     var normalMatrixLoc = gl.getUniformLocation(program,"normalMatrix");
     gl.uniformMatrix4fv(normalMatrixLoc,false,flatten(normalMatrix));
 

@@ -9,7 +9,7 @@ class Texture{
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         var pixel = new Uint8Array([255,255,255,255]);  
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, (pixel));
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
 
         var image = new Image();
         image.onload = function() {
