@@ -231,12 +231,20 @@
 
     out vec4 fColor;
 
+    uniform sampler2D oldImage;
     uniform sampler2D newImage;
 
     void main(){
-        fColor = texture(newImage,vTexCoord);
+        vec4 oldPixel = texture(oldImage,vTexCoord);
+        vec4 newPixel = texture(newImage,vTexCoord);
+        if(newPixel == vec4(1,1,1,1) && oldPixel!=vec4(1,1,1,1) ){
+            oldPixel = vec4(0,0,0,1);
+            newPixel = oldPixel;
+        }
+        fColor = newPixel;
     }
 </script>
+
 </div>
 
 <script src="../Common/initShaders.js"></script>

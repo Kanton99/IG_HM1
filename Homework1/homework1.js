@@ -174,9 +174,12 @@ function init()
     gl.vertexAttribPointer( texCoordLoc, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( texCoordLoc );
 
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,texture1);
     gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 1);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D,texture2);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImage"), 1);
 
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -322,8 +325,10 @@ function render()
 
     //render effect
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, flag ? texture1 : texture2);
+    gl.bindTexture(gl.TEXTURE_2D, texture2);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
 
@@ -370,6 +375,7 @@ function renderScene(){
 
 function copyTexture(from, to){
     gl.bindFramebuffer(gl.FRAMEBUFFER,frame1);
+    gl.activeTexture(gl.TEXTURE1);
     gl.useProgram(program1);
     gl.bindTexture(gl.TEXTURE_2D, from);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, to, 0);
