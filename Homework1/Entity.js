@@ -10,39 +10,38 @@ class Entity{
         
         this._material = new Material();
         this._texture = new Texture();
+
+        
+        this.vBuffer = gl.createBuffer();
+        this.nBuffer = gl.createBuffer();
+        this.tBuffer = gl.createBuffer();
     }
 
     init(gl, program){
         this.calculateNormals();
         this.gen_textCoods();
 
-        var vBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, flatten(this.positions), gl.STATIC_DRAW);
         
         var positionLoc = gl.getAttribLocation(program, "aPosition");
         gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(positionLoc);
 
-        var nBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,nBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.nBuffer);
         gl.bufferData(gl.ARRAY_BUFFER,flatten(this.normals),gl.STATIC_DRAW);
 
         var normalLoc = gl.getAttribLocation(program,"aNormal");
         gl.vertexAttribPointer(normalLoc,4,gl.FLOAT,false,0,0);
         gl.enableVertexAttribArray(normalLoc);
         
-        var tBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER,tBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER,this.tBuffer);
         gl.bufferData(gl.ARRAY_BUFFER,flatten(this._texture._textCoords),gl.STATIC_DRAW);
 
         var textureLoc = gl.getAttribLocation(program,"aTextureCoord");
         gl.vertexAttribPointer(textureLoc,2,gl.FLOAT,false,0,0);
         gl.enableVertexAttribArray(textureLoc);
 
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, this._texture._texture);
-        gl.uniform1i(gl.getUniformLocation(program,"objectTexture"),2);
     }
 
     update(gl){ 

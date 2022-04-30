@@ -2,6 +2,7 @@
 
 var canvas;
 var gl;
+var then = 0;
 
 var numPositions  = 0;
 
@@ -41,9 +42,9 @@ var flag =true;
 var frameBuffer;
 var copyFrame;
 var texture1;
-var texture2;
-var texture3;
-var texture4;
+var blurTextures = [];
+
+var vertexArray3D;
 
 var texCoord = [
     vec2(0, 0),
@@ -85,38 +86,12 @@ function init()
     program1 = initShaders(gl,"final-render-vertex","final-render-fragment");
     program = per_vertex_program;
     gl.useProgram(program);
-    //#region Table setup
-    table = new Table();
-    table.material.ambient = vec4(1,1,1,1);
-    table.material.diffuse = vec4(0.5,0.5,0.5,1);
-    table.material.specular = vec4(1,1,1,1);
-    table.material.shininess = 10;
-    table.texture(gl,"woodTexture.png");
-    table.init(gl, program);
-    numPositions += table._numPositions;
-    //#endregion
+    vertexArray3D = gl.createVertexArray();
+    gl.bindVertexArray(vertexArray3D)
     
-    //#region Spotlight setup
-    spotlight = new Spotlight();
-    spotlight.position = vec4(2,2,2,1);
-    spotlight.direction = vec4(-1,-1,-1,1);
-    spotlight.opening = 25;
-    spotlight._attenuation = 1;
-
-    spotlight.ambient = vec4(0.3,0.3,0.3,1);
-    spotlight.diffuse = vec4(1,1,1,1);
-    spotlight.specular = vec4(1,1,1,1);
-    //#endregion
     
-    perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
-    modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
-    
-    gl.uniform4fv(gl.getUniformLocation(program,"AmbientProduct"), flatten(mult(table.material.ambient,spotlight.ambient)));
-    gl.uniform4fv(gl.getUniformLocation(program,"DiffuseProduct"),flatten(mult(table.material.diffuse,spotlight.diffuse)));
-    gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
-    gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
-
     //#region Textures and Frame Buffers setup
+    {//setup Textures
     texture1 = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture1);
@@ -125,30 +100,16 @@ function init()
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 
-    texture2 = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture2);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-    texture3 = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture3);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    
-    texture4 = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture4);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
+    for(var i = 0;i<3;i++){
+        blurTextures.push(gl.createTexture());
+        gl.bindTexture(gl.TEXTURE_2D, blurTextures[i]);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    }
+    }
     frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
     frameBuffer.width = canvas.width;
@@ -171,9 +132,43 @@ function init()
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
 
     gl.enable(gl.DEPTH_TEST);
+    //#region Table setup
+    table = new Table();
+    table.material.ambient = vec4(1,1,1,1);
+    table.material.diffuse = vec4(0.5,0.5,0.5,1);
+    table.material.specular = vec4(1,1,1,1);
+    table.material.shininess = 10;
+    table.texture(gl,"woodTexture.png");
+    table.init(gl, program);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, table._texture._texture);
+    gl.uniform1i(gl.getUniformLocation(program,"objectTexture"),1);
+    numPositions += table._numPositions;
+    //#endregion
+
+    //#region Spotlight setup
+    spotlight = new Spotlight();
+    spotlight.position = vec4(2,2,2,1);
+    spotlight.direction = vec4(-1,-1,-1,1);
+    spotlight.opening = 25;
+    spotlight._attenuation = 1;
+
+    spotlight.ambient = vec4(0.3,0.3,0.3,1);
+    spotlight.diffuse = vec4(1,1,1,1);
+    spotlight.specular = vec4(1,1,1,1);
+    //#endregion
+
+    perspectiveMatrix = perspective(fovy,aspect,zNear,zFar);
+    modelViewMatrix = mult(translate(0,0,-4),modelViewMatrix);
+    gl.uniform4fv(gl.getUniformLocation(program,"AmbientProduct"), flatten(mult(table.material.ambient,spotlight.ambient)));
+    gl.uniform4fv(gl.getUniformLocation(program,"DiffuseProduct"),flatten(mult(table.material.diffuse,spotlight.diffuse)));
+    gl.uniform4fv(gl.getUniformLocation(program,"SpecularProduct"),flatten(mult(table.material.specular,spotlight.specular)));
+    gl.uniform1f(gl.getUniformLocation(program,"Shininess"),table.material.shininess);
 
     renderScene();
     // send data to GPU for normal render
+    {
+    gl.bindVertexArray(null)
     gl.bindFramebuffer(gl.FRAMEBUFFER,null);
     gl.useProgram(program1);
 
@@ -196,22 +191,25 @@ function init()
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,texture1);
     gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 0);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D,texture2);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[0]"), 1);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D,texture3);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[1]"), 2);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D,texture4);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
+    // gl.activeTexture(gl.TEXTURE1);
+    // gl.bindTexture(gl.TEXTURE_2D,texture2);
+    // gl.uniform1i( gl.getUniformLocation(program1, "oldImages[0]"), 1);
+    // gl.activeTexture(gl.TEXTURE2);
+    // gl.bindTexture(gl.TEXTURE_2D,texture3);
+    // gl.uniform1i( gl.getUniformLocation(program1, "oldImages[1]"), 2);
+    // gl.activeTexture(gl.TEXTURE3);
+    // gl.bindTexture(gl.TEXTURE_2D,texture4);
+    // gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
+    for(var i = 0;i<3;++i){
+        gl.activeTexture(gl.TEXTURE0+i+1);
+        gl.bindTexture(gl.TEXTURE_2D, blurTextures[i]);
+        gl.uniform1i(gl.getUniformLocation(program1,"oldImages["+i+"]"),i+1);
+    }
 
 
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
     gl.viewport(0, 0, canvas.width, canvas.height);
-    
-    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if(status != gl.FRAMEBUFFER_COMPLETE) alert("Frame buffer not complete");
+    }
     //#endregion
 
     //event listeners for buttons
@@ -298,11 +296,16 @@ function init()
     });
 
     document.querySelector("#changeShader").onclick = function(){
+        gl.bindVertexArray(vertexArray3D);
         per_vertex = !per_vertex;
         if(per_vertex) program = per_vertex_program;
         else program = per_fragment_program;
         gl.useProgram(program);
         table.init(gl, program);
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, table._texture._texture);
+        gl.uniform1i(gl.getUniformLocation(program,"objectTexture"),1);
+        gl.bindVertexArray(null);
         gl.useProgram(program1);
     };
 
@@ -322,46 +325,27 @@ function init()
 
 function render()
 {
-    copyTexture(texture3,texture4);
-    copyTexture(texture2,texture3);
-    copyTexture(texture1,texture2);
+    copyTexture(blurTextures[1],blurTextures[2]);
+    copyTexture(blurTextures[0],blurTextures[1]);
+    copyTexture(texture1,blurTextures[0]);
 
     //rendere new frame
     renderScene()
 
-
     //render effect
+    gl.bindVertexArray(null)
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(program1);
 
-    gl.bindBuffer( gl.ARRAY_BUFFER, buffer2);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
-
-    var positionLoc = gl.getAttribLocation(program1, "aPosition");
-    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray( positionLoc );
-
-    gl.bindBuffer( gl.ARRAY_BUFFER, buffer3);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoord), gl.STATIC_DRAW);
-
-    var texCoordLoc = gl.getAttribLocation( program1, "aTexCoord");
-    gl.vertexAttribPointer( texCoordLoc, 2, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( texCoordLoc );
-
-    //send texture for effect
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,texture1);
-    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 0);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D,texture2);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[0]"), 1);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D,texture3);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[1]"), 2);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D,texture4);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
+    gl.uniform1i(gl.getUniformLocation(program1,"newImage"),0);
 
+    for(var i = 0;i<3;i++){
+        gl.activeTexture(gl.TEXTURE0+i+1)
+        gl.bindTexture(gl.TEXTURE_2D,blurTextures[i]);
+        gl.uniform1i(gl.getUniformLocation(program1,"oldImages["+i+"]"),i+1);
+    }
     gl.uniform1i(gl.getUniformLocation(program1,"blurEffect"),blur);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
@@ -394,10 +378,14 @@ function update(){
 }
 
 function renderScene(){
+    gl.bindVertexArray(vertexArray3D);
     gl.useProgram(program);
-    gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer)
-    table.init(gl, program);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer);
+    //table.init(gl, program);
     update();
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, table._texture._texture);
+    gl.uniform1i(gl.getUniformLocation(program,"objectTexture"),1);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
     gl.viewport(0,0,canvas.width,canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -405,6 +393,7 @@ function renderScene(){
 }
 
 function copyTexture(from, to){
+    gl.bindVertexArray(null)
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D,null);
     gl.activeTexture(gl.TEXTURE2);
