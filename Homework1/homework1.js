@@ -38,9 +38,11 @@ var texture=true;
 
 var flag =true;
 var frameBuffer;
-var frame1;
+var copyFrame;
 var texture1;
 var texture2;
+var texture3;
+var texture4;
 
 var texCoord = [
     vec2(0, 0),
@@ -130,6 +132,22 @@ function init()
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+    texture3 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture3);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    
+    texture4 = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture4);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
     frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
     frameBuffer.width = canvas.width;
@@ -176,10 +194,17 @@ function init()
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D,texture1);
-    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 1);
+    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D,texture2);
-    gl.uniform1i( gl.getUniformLocation(program1, "oldImage"), 1);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[0]"), 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,texture3);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[1]"), 2);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D,texture4);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
+
 
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -286,18 +311,24 @@ function init()
     }
     //#endregion
     
-    frame1 = gl.createFramebuffer();
+    copyFrame = gl.createFramebuffer();
     render();
 }
 
 function render()
 {
+    copyTexture(texture3,texture4);
+    copyTexture(texture2,texture3);
     copyTexture(texture1,texture2);
 
     //rendere new frame
     renderScene()
 
+
+    //render effect
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(program1);
+    
     gl.bindBuffer( gl.ARRAY_BUFFER, buffer2);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
 
@@ -312,27 +343,24 @@ function render()
     gl.vertexAttribPointer( texCoordLoc, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( texCoordLoc );
 
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D,texture1);
-    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 1);
-
-    gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    
-    var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-    if(status != gl.FRAMEBUFFER_COMPLETE) alert("Frame buffer not complete");
-
-
-    //render effect
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    //send texture for effect
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture1);
+    gl.bindTexture(gl.TEXTURE_2D,texture1);
+    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 0);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, texture2);
+    gl.bindTexture(gl.TEXTURE_2D,texture2);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[0]"), 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,texture3);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[1]"), 2);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D,texture4);
+    gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
+
+    gl.uniform1i(gl.getUniformLocation(program1,"blurEffect"),1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
 
-    flag = !flag;
     requestAnimationFrame(render);
 }
 
@@ -363,22 +391,31 @@ function update(){
 function renderScene(){
     gl.useProgram(program);
     gl.bindFramebuffer(gl.FRAMEBUFFER,frameBuffer)
-    gl.activeTexture(gl.TEXTURE0);
     table.init(gl, program);
     update();
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture1, 0);
-    //gl.clearColor(1,0,0,1);
     gl.viewport(0,0,canvas.width,canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,table._numPositions);
 }
 
 function copyTexture(from, to){
-    gl.bindFramebuffer(gl.FRAMEBUFFER,frame1);
     gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D,null);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D,null);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D,null);
     gl.useProgram(program1);
-    gl.bindTexture(gl.TEXTURE_2D, from);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,copyFrame);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, to, 0);
+
+    gl.uniform1i(gl.getUniformLocation(program1,"blurEffect"),0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D,from);
+    gl.uniform1i( gl.getUniformLocation(program1, "newImage"), 0);
+
     gl.viewport(0,0,canvas.width,canvas.height)
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);

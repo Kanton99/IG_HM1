@@ -228,20 +228,25 @@
     precision mediump float;
     
     in vec2 vTexCoord;
+    uniform bool blurEffect;
 
     out vec4 fColor;
 
-    uniform sampler2D oldImage;
     uniform sampler2D newImage;
-
+    uniform sampler2D oldImages[3];
     void main(){
-        vec4 oldPixel = texture(oldImage,vTexCoord);
         vec4 newPixel = texture(newImage,vTexCoord);
-        if(newPixel == vec4(1,1,1,1) && oldPixel!=vec4(1,1,1,1) ){
-            oldPixel = vec4(0,0,0,1);
-            newPixel = oldPixel;
+        if(newPixel==vec4(1,1,1,1) && blurEffect){
+            vec4 oldPixel1 = texture(oldImages[0],vTexCoord);
+            vec4 oldPixel2 = texture(oldImages[1],vTexCoord);
+            vec4 oldPixel3 = texture(oldImages[2],vTexCoord);
+            oldPixel1.a = 0.75;
+            oldPixel2.a = 0.75;
+            oldPixel3.a = 0.75;
+            newPixel.a = 0.f;
+            newPixel = oldPixel1 * oldPixel2 * oldPixel3;
         }
-        fColor = newPixel;
+        fColor = newPixel;;
     }
 </script>
 
