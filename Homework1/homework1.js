@@ -35,6 +35,7 @@ var buffer2, buffer3;
 var spotlight;
 var per_vertex = true;
 var texture=true;
+var blur = true;
 
 var flag =true;
 var frameBuffer;
@@ -309,6 +310,10 @@ function init()
         texture = !texture;
         table.texture(gl,(texture ? "woodTexture.png" : ""));
     }
+
+    document.querySelector("#motionBlur").onclick = function(){
+        blur = !blur;
+    }
     //#endregion
     
     copyFrame = gl.createFramebuffer();
@@ -328,7 +333,7 @@ function render()
     //render effect
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.useProgram(program1);
-    
+
     gl.bindBuffer( gl.ARRAY_BUFFER, buffer2);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(vertices), gl.STATIC_DRAW);
 
@@ -357,7 +362,7 @@ function render()
     gl.bindTexture(gl.TEXTURE_2D,texture4);
     gl.uniform1i( gl.getUniformLocation(program1, "oldImages[2]"), 3);
 
-    gl.uniform1i(gl.getUniformLocation(program1,"blurEffect"),1);
+    gl.uniform1i(gl.getUniformLocation(program1,"blurEffect"),blur);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES,0,6);
 
