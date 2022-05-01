@@ -95,7 +95,7 @@
         vec4 ambient,diffuse,specular;
         vec3 N = normalize(((normalMatrix)*aNormal).xyz);
         vec3 L = normalize(lightPos.xyz-(modelViewMatrix*vPosition).xyz);
-        L = -lightDirection.xyz;
+        //L = -lightDirection.xyz;
         vec3 E = -normalize((modelViewMatrix*vPosition).xyz);
         vec3 H = normalize(L+E);
         float Kd = max(dot(L,N),0.f);
@@ -104,9 +104,12 @@
         diffuse = Kd*DiffuseProduct;
         specular = max(pow(max(dot(N,H),0.f),Shininess)*SpecularProduct, 0.f);
 
+        float D = length(L);
+        float distanceAttenuation = clamp(1.f/(1.f+D+(D*D)),0.f,1.f);
+
         float cosPhi = dot(lightDirection.xyz,normalize(vPosition.xyz-lightPos.xyz));
         float inLight = float(cosPhi>=cos(angle));
-        float attenuation = pow(cosPhi,attenuationFactor)*inLight;
+        float attenuation = pow(cosPhi,attenuationFactor)*inLight*distanceAttenuation;
 
         vec4 intensity = ambient+((diffuse+specular)*attenuation);
         vColor = vec4(intensity.xyz,1.f);
@@ -202,9 +205,11 @@
 
         float cosPhi = dot(LL,-normalize(lightDirection.xyz));
         float d = float(dot(LL,NN)>=0.f);
+        float D = length(L);
+        float distanceAttenuation = clamp(1.f/(1.f+D+(D*D)),0.f,1.f);
         float inLight = float(cosPhi>=cos(angle));
         float attenuation = pow(cosPhi,attenuationFactor);
-        float light = (attenuation * inLight);
+        float light = (attenuation * inLight)*distanceAttenuation;
 
         vec4 intensity = ambient + ((specular+diffuse)*light);
         fColor = vec4(intensity.xyz, 1.0) * texture(objectTexture,vTextureCoord);

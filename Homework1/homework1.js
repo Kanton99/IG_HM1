@@ -134,8 +134,8 @@ function init()
     gl.enable(gl.DEPTH_TEST);
     //#region Table setup
     table = new Table();
-    table.material.ambient = vec4(1,1,1,1);
-    table.material.diffuse = vec4(0.5,0.5,0.5,1);
+    table.material.ambient = vec4(0.5,0.5,0.5,1);
+    table.material.diffuse = vec4(1,1,1,1);
     table.material.specular = vec4(1,1,1,1);
     table.material.shininess = 10;
     table.texture(gl,"woodTexture.png");
